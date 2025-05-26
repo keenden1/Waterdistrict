@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Leave extends Model
+{
+    use HasFactory;
+
+    protected $table = 'leaves'; 
+
+    protected $fillable = [
+        'employee_id',
+        'name',
+        'date',
+        'month',
+        'year',
+
+        'vl',
+        'fl',
+        'sl',
+        'spl',
+        'other',
+
+        'vl_earned',
+        'vl_absences_withpay',
+        'vl_balance',
+        'vl_absences_withoutpay',
+
+        'sl_earned',
+        'sl_absences_withpay',
+        'sl_balance',
+        'sl_absences_withoutpay',
+
+        'total_leave_earned',
+    ];
+}
