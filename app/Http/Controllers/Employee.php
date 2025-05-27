@@ -20,6 +20,7 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\Exception\AuthException;
 use Kreait\Firebase\Exception\Auth\UserNotFound;
 use Carbon\Carbon;
+use Complex\Complex;
 
 class Employee extends Controller
 {
@@ -469,7 +470,20 @@ public function getSalary(Request $request)
                 if ($check_status->account_status == 'pending') {
                     return redirect('/Check');
                 } else{
-                        return view('employee.application_for_leave');
+             $currentYear = Carbon::now()->year;
+                    $countVL = Application_leave::where('a_availed', 'Vacation Leave')
+                      ->where('status', 'Approved')
+                      ->whereYear('created_at', $currentYear)
+                      ->count();
+                    $countSL = Application_leave::where('a_availed', 'Sick Leave')
+                      ->where('status', 'Approved')
+                      ->whereYear('created_at', $currentYear)
+                      ->count();
+                   
+                    $VL= 3 - $countSL;
+                    $SL= 5 - $countSL;
+
+                        return view('employee.application_for_leave' ,compact('VL','SL'));
                     }
         } else {
             return redirect('/Resend')->with('error', 'Please verify your email.');
@@ -529,9 +543,20 @@ public function getSalary(Request $request)
                     $balance  = Leave::where('employee_id', $employee->employee_id)
                     ->latest() // equivalent to orderBy('created_at', 'desc')
                     ->first();
-
-
-                        return view('employee.profile',compact('employee','balance'));
+                    
+                    $currentYear = Carbon::now()->year;
+                    $countVL = Application_leave::where('a_availed', 'Vacation Leave')
+                      ->where('status', 'Approved')
+                      ->whereYear('created_at', $currentYear)
+                      ->count();
+                    $countSL = Application_leave::where('a_availed', 'Sick Leave')
+                      ->where('status', 'Approved')
+                      ->whereYear('created_at', $currentYear)
+                      ->count();
+                   
+                    $VL= 3 - $countSL;
+                    $SL= 5 - $countSL;
+                        return view('employee.profile',compact('employee','balance','SL', 'VL'));
                     }
         } else {
             return redirect('/Resend')->with('error', 'Please verify your email.');

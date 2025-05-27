@@ -23,13 +23,21 @@
                 
                 <label>Employee ID</label>
                 <input type="text" value="{{$employee->employee_id}}" disabled>
+
+                 <label>Vacation Leave Remaining</label>
+                <input type="text" value="{{$VL.'/3' ?? '3/3'}}" disabled>
+             
+
+                <label>Sick Remaining</label>
+                <input type="text" value="{{$SL.'/5' ?? '5/5'}}" disabled>
                 
                 <label>Vacation Leave</label>
                 <input type="text" value="{{$balance->vl_balance ?? '0'}}" disabled>
+             
 
                 <label>Sick Leave</label>
                 <input type="text" value="{{$balance->sl_balance ?? '0'}}" disabled>
-
+             
                 <label>Leave of Credit</label>
                 <input type="text" value="{{$balance->total_leave_earned ?? '0'}}" disabled>
                 

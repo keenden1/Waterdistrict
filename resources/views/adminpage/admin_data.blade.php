@@ -23,7 +23,7 @@ fetch('/json/waterdistrict.json')
     console.error('Failed to load Firebase config:', error);
   });
 </script>
-@php
+<!-- @php
 
 chdir('C:\xampp\htdocs\waterdistrict');  // your Laravel project path
 
@@ -37,7 +37,7 @@ do {
         sleep(10);  // wait 10 seconds before retry
     }
 } while ($return_var !== 0);
-@endphp
+@endphp -->
 
 
 
@@ -163,7 +163,7 @@ Swal.fire({
 <script>
 Swal.fire({
   icon: 'error',
-  title: 'Validation Error',
+  title: 'Please check the form and correct the following:',
   html: `{!! implode('<br>', $errors->all()) !!}`,
   confirmButtonText: 'OK'
 });
@@ -219,13 +219,27 @@ Swal.fire({
       </div>
 
       <div class="step">
-        <!-- <h4>Vacation Leave</h4>
+           <h4>Vacation Leave</h4>
         <label for="vl_earned">Earned</label>
         <input type="number"  name="vl_earned" value="1.250" />
         <label for="vl_absences_withpay">Absences/Undertime with pay</label>
         <input type="number"  name="vl_absences_withpay"  />
         <label for="vl_absences_withoutpay">Absences/Undertime without pay</label>
-        <input type="number"  name="vl_absences_withoutpay"  /> -->
+        <input type="number"  name="vl_absences_withoutpay"  />
+      </div>
+
+      <div class="step">
+          <h4>Sick Leave</h4>
+        <label for="sl_earned">Earned</label>
+        <input type="number"  name="sl_earned" value="1.250" />
+        <label for="sl_absences_withpay">Absences/Undertime with pay</label>
+        <input type="number"  name="sl_absences_withpay"  />
+        <label for="sl_absences_withoutpay">Absences/Undertime without pay</label>
+        <input type="number"  name="sl_absences_withoutpay"  />
+      </div>
+      
+      <div class="step">
+     
          
           <h4>Absences/Tardiness</h4>
           <label for="day">Day</label>
@@ -247,13 +261,7 @@ Swal.fire({
          <input type="number"  name="minutes_Under"/>
          <label for="times">Times</label>
          <input type="number"  name="times_Under"/>
-        <!-- <h4>Sick Leave</h4> -->
-        <!-- <label for="sl_earned">Earned</label>
-        <input type="number"  name="sl_earned" value="1.250" />
-        <label for="sl_absences_withpay">Absences/Undertime with pay</label>
-        <input type="number"  name="sl_absences_withpay"  />
-        <label for="sl_absences_withoutpay">Absences/Undertime without pay</label>
-        <input type="number"  name="sl_absences_withoutpay"  /> -->
+      
 
          
 

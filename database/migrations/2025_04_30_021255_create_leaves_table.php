@@ -40,8 +40,20 @@ return new class extends Migration
             $table->decimal('sl_absences_withoutpay', 5, 3)->nullable(); 
 
             $table->decimal('total_leave_earned', 5, 3)->nullable();
+
+
+            $table->integer('day_A_T')->nullable();
+            $table->integer('hour_A_T')->nullable();
+            $table->integer('minutes_A_T')->nullable();
+            $table->integer('times_A_T')->nullable();
+
+            
+            $table->integer('day_Under')->nullable();
+            $table->integer('hour_Under')->nullable();
+            $table->integer('minutes_Under')->nullable();
+            $table->integer('times_Under')->nullable();
             $table->timestamps();
-    
+  
         });
 
     }

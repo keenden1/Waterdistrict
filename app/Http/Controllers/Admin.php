@@ -86,23 +86,65 @@ public function leave_store(Request $request)
         'minutes_Under'=> 'nullable|numeric',
         'times_Under'=> 'nullable|numeric',
 
-        // 'vl_earned' => 'nullable|numeric',
-        // 'vl_absences_withpay' => 'nullable|numeric',
-        // 'vl_absences_withoutpay' => 'nullable|numeric',
+        'vl_earned' => 'nullable|numeric',
+        'vl_absences_withpay' => 'nullable|numeric',
+        'vl_absences_withoutpay' => 'nullable|numeric',
 
-        // 'sl_earned' => 'nullable|numeric',
-        // 'sl_absences_withpay' => 'nullable|numeric',
-        // 'sl_absences_withoutpay' => 'nullable|numeric',
+        'sl_earned' => 'nullable|numeric',
+        'sl_absences_withpay' => 'nullable|numeric',
+        'sl_absences_withoutpay' => 'nullable|numeric',
+        ], [
+        'monthly_salary.required' => 'Please enter the monthly salary.',
+        'month.required' => 'Please select a month.',
+        'month.integer' => 'Month must be a valid number.',
+        'month.min' => 'Month must be between 1 and 12.',
+        'month.max' => 'Month must be between 1 and 12.',
+        'year.required' => 'Please enter the year.',
+        'year.integer' => 'Year must be a valid number.',
+        'year.min' => 'Year must be after 1999.',
     ]);
+    $day_A_T = $request->input('day_A_T', 0);
+    $hour_A_T = $request->input('hour_A_T', 0);
+    $minutes_A_T = $request->input('minutes_A_T', 0);
 
-    Working_hour::all();
-    Daily_earned::all();
+    $day_Under = $request->input('day_Under', 0);
+    $hour_Under = $request->input('hour_Under', 0);
+    $minutes_Under = $request->input('minutes_Under', 0);
+
+    
+    $Vl_totalMinutes = ($day_A_T * 480) + ($hour_A_T * 60) + $minutes_A_T;
+    $SL_totalMinutes = ($day_Under * 480) + ($hour_Under * 60) + $minutes_Under;
+    
+// Function to get total equivalent day for total minutes, split in chunks max 60 mins each
+        function getEquivalentDayFromMinutes($totalMinutes) {
+            $totalEquivalentDay = 0;
+            while ($totalMinutes > 0) {
+                $chunk = min(60, $totalMinutes);
+                $equivalent = DB::table('working_hour')->where('minutes', $chunk)->value('equivalent_day');
+
+                // fallback if not found in DB
+                if (!$equivalent) {
+                    // assume linear fallback: 1 day = 480 mins
+                    $equivalent = $chunk / 480;
+                }
+
+                $totalEquivalentDay += floatval($equivalent);
+                $totalMinutes -= $chunk;
+            }
+            return $totalEquivalentDay;
+        }
+
+        $totalminVl = getEquivalentDayFromMinutes($Vl_totalMinutes);
+        $totalminSl = getEquivalentDayFromMinutes($SL_totalMinutes);
 
 
+    
 
-
-    $vl_earned_data = '1.250';
-    $sl_earned_data = '1.250';
+    $vl_values = $totalminVl; 
+    $sl_values = $totalminSl;
+  
+    $vl_earned_data =  floatval($request->vl_earned) - $vl_values;
+    $sl_earned_data = floatval($request->sl_earned) - $sl_values;
 
     $existing = Leave::where('month', $request->month)
                     ->where('employee_id', $request->employee_id)
@@ -162,8 +204,11 @@ public function leave_store(Request $request)
         'employee_id',
         'month','year','date',
         'vl','sl','fl','spl','other',
-       
+        
+        'day_A_T', 'hour_A_T','minutes_A_T','times_A_T',
+        'day_Under', 'hour_Under','minutes_Under','times_Under',
          ]);
+
 
         $data['vl_earned'] = $vl_earned_data;
         $data['sl_earned'] = $sl_earned_data;
@@ -171,6 +216,7 @@ public function leave_store(Request $request)
         $data['sl_balance'] = $sl_balance;
         $data['total_leave_earned'] = $total_leave_earned;
         
+
     Leave::create($data);
 
     return redirect()->back()->with('success', 'Leave record added successfully.');
