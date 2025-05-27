@@ -28,7 +28,7 @@
         {{ session('success') }}
     </div>
     @endif
-    <form method="POST" action="{{ route('Login-User') }}">
+    <form method="POST" action="{{ route('Login-User') }}" id="user-login-form">
         @csrf
 
         <!-- Email Field -->
@@ -42,11 +42,16 @@
             <input type="password" name="password" id="password" placeholder="Password" required>
             <i class="fas fa-eye-slash" id="toggle-password"></i> 
         </div>
+        <div style="width:50px; position:relative; margin: 10px 0;">
+        <input type="checkbox" id="user_remember" name="user_remember" value="1" >
+        <label for="user_remember" style="position:absolute; left:50px; margin-top:2px;">Remember&nbsp;Me</label>
+        </div>
+
         @error('password')
             <span class="text-danger" id="error-message">{{ $message }}</span>
         @enderror
 
-      <button type="submit" id="login-button">
+      <button type="submit" id="user-login-button" style="margin-top: 0;">
         Login
         </button>
 
@@ -277,13 +282,31 @@
         }, 5000); 
 
     </script>
-    <script>
-  const form = document.querySelector('form');
-  const loginBtn = document.getElementById('login-button');
+   <script>
+  const form = document.querySelector('#user-login-form');
+  const loginBtn = document.getElementById('user-login-button');
+  const emailInput = document.querySelector('input[name="email"]');
+  const rememberCheckbox = document.getElementById('user_remember');
+
+  // On page load, prefill email if saved
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedEmail = localStorage.getItem('user_savedEmail');
+    if (savedEmail) {
+      emailInput.value = savedEmail;
+      rememberCheckbox.checked = true;
+    }
+  });
 
   form.addEventListener('submit', function(e) {
     // Prevent double submits
     if (loginBtn.disabled) return;
+
+    // Save or remove email based on checkbox
+    if (rememberCheckbox.checked) {
+      localStorage.setItem('user_savedEmail', emailInput.value);
+    } else {
+      localStorage.removeItem('user_savedEmail');
+    }
 
     // Disable the button
     loginBtn.disabled = true;
@@ -294,5 +317,6 @@
     // (The form will now submit; if you were doing AJAX, you'd do it here)
   });
 </script>
+
 
 </html>

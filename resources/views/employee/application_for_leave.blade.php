@@ -75,6 +75,26 @@
           <input type="text" name="salary" id="salary" readonly  style="background-color: rgba(128, 128, 128, 0.2);" placeholder="₱ ∗∗∗∗∗∗">
         </div>
 
+        
+        <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top:10px;">
+          <label style="margin-right: 10px;">Is this an emergency?</label>
+
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="radio" name="is_emergency" id="emergencyYes" value="yes">
+            Yes
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="radio" name="is_emergency" id="emergencyNo" value="no" checked>
+            No
+          </label>
+        </div>
+
+
+
+
+
+
         <div class="form-group">
           <label for="type">Type of leave to be availed of</label>
           <select id="type" name="type" required>
@@ -641,109 +661,98 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-   document.addEventListener("DOMContentLoaded", function () {
-        const leaveTypeSelect = document.getElementById("type"); // The dropdown for Type of Leave
-        const startDateInput = document.getElementById("startDate");
-        const endDateInput = document.getElementById("endDate");
+document.addEventListener("DOMContentLoaded", function () {
+    const leaveTypeSelect = document.getElementById("type");
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+    const emergencyYes = document.getElementById("emergencyYes");
+    const emergencyNo = document.getElementById("emergencyNo");
 
-        // Mapping leave types to their required advance days
-        const leaveAdvanceDays = {
-            "Vacation Leave": 5,
-            "Mandatory/Forced Leave": 1,
-            "Sick Leave": 5,
-            "Maternity Leave": 1,
-            "Paternity Leave": 1,
-            "Special Privilage Leave": 7,
-            "Solo Parent Leave": 7,
-            "Study Leave": 1,
-            "10-Day VAWC Leave": 1,
-            "Rehabilitation Leave": 7,
-            "Special Leave Benifits for Woman": 5,
-            "Special Emergency": 5,
-            "Adoption Leave": 1
-        };
+    const leaveAdvanceDays = {
+        "Vacation Leave": 5,
+        "Mandatory/Forced Leave": 1,
+        "Sick Leave": 5,
+        "Maternity Leave": 1,
+        "Paternity Leave": 1,
+        "Special Privilage Leave": 7,
+        "Solo Parent Leave": 7,
+        "Study Leave": 1,
+        "10-Day VAWC Leave": 1,
+        "Rehabilitation Leave": 7,
+        "Special Leave Benifits for Woman": 5,
+        "Special Emergency": 5,
+        "Adoption Leave": 1
+    };
 
-        // Initialize Flatpickr for start date without setting any initial value
-        const startDatePicker = flatpickr(startDateInput, {
-            dateFormat: "Y-m-d",
-            minDate: "today",
-            defaultDate: null, // Ensure no initial value is set
-            onChange: function(selectedDates, dateStr, instance) {
-            // Set the startDateInput as required when the date is selected
+    const startDatePicker = flatpickr(startDateInput, {
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        defaultDate: null,
+        onChange: function(selectedDates, dateStr) {
             startDateInput.required = true;
-    }
-        });
-
-        const endDatePicker = flatpickr(endDateInput, {
-            dateFormat: "Y-m-d",
-            minDate: "today",
-            defaultDate: null, // Ensure no initial value is set
-            onChange: function(selectedDates, dateStr, instance) {
-                // Set the endDateInput as required when the date is selected
-                endDateInput.required = true;
-            }
-        });
-
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function(event) {
-            if (!startDateInput.value || !endDateInput.value) {
-                alert("Please select both start and end dates.");
-                event.preventDefault(); // Prevent form submission
-            }
-        });
-        // Function to update the start date based on leave type
-        function updateStartDate() {
-            const leaveType = leaveTypeSelect.value;
-            const daysToAdd = leaveAdvanceDays[leaveType] || 1; // Default to 1 day if not listed
-            const newStartDate = new Date();
-            newStartDate.setDate(newStartDate.getDate() + daysToAdd);
-
-            // Set the new min date for start date
-            startDatePicker.set("minDate", newStartDate);
-
-            // Ensure end date is at least the same as the new start date
-            endDatePicker.set("minDate", newStartDate);
         }
-
-        // Listen for changes in the leave type dropdown
-        leaveTypeSelect.addEventListener("change", updateStartDate);
     });
 
+    const endDatePicker = flatpickr(endDateInput, {
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        defaultDate: null,
+        onChange: function(selectedDates, dateStr) {
+            endDateInput.required = true;
+        }
+    });
 
-    document.addEventListener("DOMContentLoaded", function () {
+    function updateStartDate() {
+        const leaveType = leaveTypeSelect.value;
+        let daysToAdd = leaveAdvanceDays[leaveType] || 1;
+
+        // If emergency is selected, override the restriction
+        if (emergencyYes.checked) {
+            daysToAdd = 0;
+        }
+
+        const newStartDate = new Date();
+        newStartDate.setDate(newStartDate.getDate() + daysToAdd);
+
+        startDatePicker.set("minDate", newStartDate);
+        endDatePicker.set("minDate", newStartDate);
+    }
+
+    // Run updateStartDate on leave type change
+    leaveTypeSelect.addEventListener("change", updateStartDate);
+
+    // Also run updateStartDate when emergency selection changes
+    emergencyYes.addEventListener("change", updateStartDate);
+    emergencyNo.addEventListener("change", updateStartDate);
+
+    // Validate form on submit
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        if (!startDateInput.value || !endDateInput.value) {
+            alert("Please select both start and end dates.");
+            event.preventDefault();
+        }
+    });
+
+    // Salary Grade Logic
     const salaryGradeSelect = document.getElementById("salary_grade");
     const stepGradeSelect = document.getElementById("step_grade");
     const salaryInput = document.getElementById("salary");
 
-    // Function to fetch salary when both salary grade and step grade are selected
     function updateSalary() {
         const salaryGrade = salaryGradeSelect.value;
         const stepGrade = stepGradeSelect.value;
 
-        // Log the values for debugging
-        console.log("Selected Salary Grade:", salaryGrade);
-        console.log("Selected Step Grade:", stepGrade);
-
-        // Check if both salary grade and step grade are selected
         if (salaryGrade && stepGrade) {
-            // Make an AJAX request to fetch the salary based on the selected values
             fetch("{{ url('/get-salary') }}?salary_grade=" + salaryGrade + "&step_grade=" + stepGrade)
-                .then(response => {
-                    // Log the response status and response body
-                    console.log("Response status:", response.status);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    console.log("Received data:", data);  // Log the received data
-                    // Update the salary input with the fetched salary
                     if (data.salary) {
-                        // Format the salary to include the currency format (Php)
                         const formattedSalary = new Intl.NumberFormat('en-PH', {
                             style: 'currency',
                             currency: 'PHP',
                             minimumFractionDigits: 2
                         }).format(data.salary);
-                        
                         salaryInput.value = formattedSalary;
                     } else {
                         salaryInput.value = "Salary not found";
@@ -756,12 +765,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Listen for changes in salary grade or step grade
     salaryGradeSelect.addEventListener("change", updateSalary);
     stepGradeSelect.addEventListener("change", updateSalary);
 });
-
 </script>
+
 <script>
    function previewForm() {
     // Capture form values
