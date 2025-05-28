@@ -30,14 +30,14 @@
                 <label>Sick Remaining</label>
                 <input type="text" value="{{$SL.'/5' ?? '5/5'}}" disabled>
                 
-                <label>Vacation Leave</label>
+                <label>Vacation Leave </label>
                 <input type="text" value="{{$balance->vl_balance ?? '0'}}" disabled>
              
 
                 <label>Sick Leave</label>
                 <input type="text" value="{{$balance->sl_balance ?? '0'}}" disabled>
              
-                <label>Leave of Credit</label>
+                <label>Leave of Credit YTD</label>
                 <input type="text" value="{{$balance->total_leave_earned ?? '0'}}" disabled>
                 
                 <button class="save-btn">Update</button>

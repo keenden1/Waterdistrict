@@ -216,11 +216,12 @@
         <p><strong>Position:</strong> <span>  {{ Session::get('position') }}      </span></p>
         <p><strong>Salary:</strong> <span id="previewSalary"></span></p>
         <p><strong>Type of Leave:</strong> <span id="previewType"></span></p>
-        <p><strong>Other Details:</strong> <span id="previewOthersDetails"></span></p>
+        <p id="otherDetailsWrapper"><strong>Other Details:</strong> <span id="previewOthersDetails"></span></p>
         <p><strong>Details of Leave:</strong> <span id="previewDetail"></span></p>
+        <p id="otherDetailsWrapper1"><strong>Other Purpose:</strong> <span id="previewother_purpose_detail"></span></p>
         <p><strong>Specify Details:</strong> <span id="previewSpecifyDetails"></span></p>
         <p><strong>Working Days:</strong> <span  id="workingDays"></span></p>
-        <p><strong>Inclusive Dates:</strong> <span id="previewStartDate"></span> / <span id="previewEndDate"></span></p>
+        <p><strong>Inclusive Dates:</strong> <span id="previewStartDate"></span> - <span id="previewEndDate"></span></p>
         <p><strong>Commutation:</strong> <span  id="previewcommutation"></span></p>
         <!-- Add other fields you want to preview here -->
         <div style="text-align: center;">
@@ -826,9 +827,22 @@ document.addEventListener("DOMContentLoaded", function () {
     stepGradeSelect.addEventListener("change", updateSalary);
 });
 </script>
-
 <script>
-   function previewForm() {
+function formatDate(input) {
+    if (!input) return '------';
+
+    const date = new Date(input);
+    if (isNaN(date)) return '------'; // handle invalid dates
+
+    const day = date.getDate().toString().padStart(2, '0');
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} ${month} ${year}`;
+}
+
+function previewForm() {
     // Capture form values
     const department = document.getElementById('department').value || '------';
     const salary = document.getElementById('salary').value || '------'; 
@@ -836,35 +850,49 @@ document.addEventListener("DOMContentLoaded", function () {
     const Others_details = document.getElementById('Others_details').value || '------';
     const detail = document.getElementById('detail').value || '------';
     const specify_details = document.getElementById('specify_details').value || '------';
-    const startDate = document.getElementById('startDate').value || '------';
-    const endDate = document.getElementById('endDate').value || '------';
     const commutation = document.getElementById('commutation').value || '------';
+    const other_purpose_detail = document.getElementById('other_purpose_detail').value || '------';
 
+    // Format dates
+    const rawStartDate = document.getElementById('startDate').value;
+    const rawEndDate = document.getElementById('endDate').value;
+    const startDate = formatDate(rawStartDate);
+    const endDate = formatDate(rawEndDate);
+
+    const otherDetailsWrapper = document.getElementById('otherDetailsWrapper');
+    if (Others_details !== '------') {
+        otherDetailsWrapper.style.display = 'block';
+    } else {
+        otherDetailsWrapper.style.display = 'none';
+    }
+
+    const otherDetailsWrapper1 = document.getElementById('otherDetailsWrapper1');
+    if (other_purpose_detail !== '------') {
+        otherDetailsWrapper1.style.display = 'block';
+    } else {
+        otherDetailsWrapper1.style.display = 'none';
+    }
     
-
     // Function to calculate working days between two dates
-    function calculateWorkingDays(startDate, endDate) {
-        var start = new Date(startDate);
-        var end = new Date(endDate);
-        var workingDays = 0;
+    function calculateWorkingDays(start, end) {
+        let startDate = new Date(start);
+        let endDate = new Date(end);
+        let workingDays = 0;
 
-        // Loop through each date from start to end
-        while (start <= end) {
-            var dayOfWeek = start.getDay();
-            // Check if the day is a weekday (Monday - Friday)
-            if (dayOfWeek != 0 && dayOfWeek != 6) { // 0 = Sunday, 6 = Saturday
+        while (startDate <= endDate) {
+            const dayOfWeek = startDate.getDay();
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Monday-Friday
                 workingDays++;
             }
-            start.setDate(start.getDate() + 1); // Move to the next day
+            startDate.setDate(startDate.getDate() + 1);
         }
-
         return workingDays;
     }
 
-    // Calculate working days if startDate and endDate are not "------"
+    // Calculate working days only if both dates are valid
     let workingDays = '------';
-    if (startDate !== '------' && endDate !== '------') {
-        workingDays = calculateWorkingDays(startDate, endDate) + ' day/s';
+    if (rawStartDate && rawEndDate) {
+        workingDays = calculateWorkingDays(rawStartDate, rawEndDate) + ' day/s';
     }
 
     // Populate preview modal
@@ -878,8 +906,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('previewEndDate').innerText = endDate;
     document.getElementById('workingDays').innerText = workingDays;
     document.getElementById('previewcommutation').innerText = commutation;
+    document.getElementById('previewother_purpose_detail').innerText = other_purpose_detail;
+
     // Check if mandatory fields are filled (excluding Others_details and Specify_details)
-    const isFormValid = department !== '------' && salary !== '------' && type !== '------' && detail !== '------' && startDate !== '------' && endDate !== '------';
+    const isFormValid = department !== '------' && salary !== '------' && type !== '------' && detail !== '------' && rawStartDate !== '' && rawEndDate !== '';
 
     // Show or hide the Submit button
     const submitButton = document.getElementById('show-only');
@@ -888,32 +918,23 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
         submitButton.style.display = 'none'; // Hide the Submit button if any required field is missing
     }
+
     // Show the modal
     document.getElementById('previewModal').style.display = 'block';
 }
 
-
 function closePreview() {
-    // Close the modal
     document.getElementById('previewModal').style.display = 'none';
 }
-// Get the current date
+
+// Get the current date formatted for display
 const currentDate = new Date();
-
-// Array to store the names of months
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-// Get the day, month, and year
 const day = currentDate.getDate();
 const month = months[currentDate.getMonth()];
 const year = currentDate.getFullYear();
-
-// Format the date as "Month Day, Year"
 const formattedDate = `${month} ${day}, ${year}`;
-
-// Set the formatted date in the <span> element
 document.getElementById('dateNow').innerText = formattedDate;
-
-
 </script>
+
 @endsection
