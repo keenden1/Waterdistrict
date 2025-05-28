@@ -293,7 +293,7 @@ public function registerUser(Request $request)
         $data['mname'] = $request->mname;
         $data['lname'] = $request->lname;
         $data['position'] = $request->position; 
-        $data['account_status'] = "pending";
+        $data['account_status'] = "Pending";
         $data['role'] = "user";
         Employee_Account::create($data);
 
@@ -491,9 +491,9 @@ public function getSalary(Request $request)
 
     }
     function History(){
-        $firebaseAuth = app('firebase.auth');
+         $firebaseAuth = app('firebase.auth');
         // Get logged-in user's email from session
-        $email = Session::get('user_email');
+             $email = Session::get('user_email');
           $user = Employee_Account::where('email', $email)->first();
 
                 if ($user && $user->role === 'admin') {
@@ -511,7 +511,10 @@ public function getSalary(Request $request)
                     return redirect('/Check');
                 } else{
 
-                $history = Application_leave::where('email', $email)->get();
+                $history = Application_leave::where('email', $email)
+                ->orderBy('date_filing', 'desc')
+                ->get();
+
                         return view('employee.history', compact('history'));
                     }
         } else {

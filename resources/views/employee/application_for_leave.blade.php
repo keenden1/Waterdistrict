@@ -76,7 +76,7 @@
         </div>
 
         
-        <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top:10px;">
+        <div id="emergency_code" class="form-group" style="display: none; align-items: center; gap: 10px; margin-top:10px;">
           <label style="margin-right: 10px;">Is this an emergency?</label>
 
           <label style="display: flex; align-items: center; gap: 5px;">
@@ -104,13 +104,13 @@
             <option value="Sick Leave">Sick Leave</option>
             <option value="Maternity Leave">Maternity Leave</option>
             <option value="Paternity Leave">Paternity Leave</option>
-            <option value="Special Privilage Leave">Special Privilage Leave</option>
+            <option value="Special Privilege Leave">Special Privilege Leave</option>
             <option value="Solo Parent Leave">Solo Parent Leave</option>
             <option value="Study Leave">Study Leave</option>
             <option value="10-Day VAWC Leave">10-Day VAWC Leave</option>
             <option value="Rehabilitation Leave">Rehabilitation Leave</option>
             <option value="Special Leave Benifits for Woman">Special Leave Benifits for Woman</option>
-            <option value="Special Emergency">Special Emergency</option>
+            <option value="Special Emergency">Special Emergency(Calamity)</option>
             <option value="Adoption Leave">Adoption Leave</option>
             <option value="Others:">Others</option>
           </select>
@@ -149,12 +149,12 @@
             <option value="Completion of Masters Degree">Completion of Master's Degree</option>
             <option value="BAR/BOARD Examination Review">BAR/BOARD Examination Review</option>
             </optgroup>
-            <optgroup label="Other Purpose">
-            <option value="Monetization of Leave Credits">Monetization of Leave Credits</option>
-            <option value="Terminal Leave">Terminal Leave</option>
-            </optgroup>
           </select>
         </div>
+
+       
+
+
         <div class="form-group" >
           <input type="text" id="specify_details" name="specify_details" class="underline-input" placeholder="Specify Details"
           style="
@@ -170,6 +170,16 @@
             margin-top:-50px;
           " >
         </div>
+
+         <div class="form-group" id="other_purpose_group">
+          <label for="other_purpose_detail">Other Purpose</label>
+          <select id="other_purpose_detail" name="other_purpose_detail">
+            <option value="" disabled selected>Select Other Purpose</option>
+            <option value="Monetization of Leave Credits">Monetization of Leave Credits</option>
+            <option value="Terminal Leave">Terminal Leave</option>
+          </select>
+        </div>
+
         <div class="form-group-row" >
             <div class="form-group" id="date_filing">
               <label for="startDate">Start Date</label>
@@ -595,7 +605,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const typeOthersDetails = document.getElementById("Others_details");
     const specifyDetails = document.getElementById("specify_details");
     const optGroups = document.querySelectorAll("#detail optgroup");
-
+    const otherPurposeGroup = document.getElementById("other_purpose_group");
     // Hide elements initially
     detailGroup.style.display = "none";
     dateFilingGroup.style.display = "none";
@@ -603,7 +613,7 @@ document.addEventListener("DOMContentLoaded", function () {
     submitButton.style.display = "none";
     typeOthersDetails.style.display = "none";
     specifyDetails.style.display = "none";
-
+    otherPurposeGroup.style.display = "none";
     // Show Details of Leave based on Type selection
     typeSelect.addEventListener("change", function () {
         const selectedType = typeSelect.value;
@@ -615,8 +625,32 @@ document.addEventListener("DOMContentLoaded", function () {
         dateFilingGroup_2.style.display = "none";
         submitButton.style.display = "none";
 
-        if (selectedType) {
+       if (selectedType == "Vacation Leave" ||
+          selectedType == "Sick Leave" ||
+          selectedType == "Special Privilege Leave") {
             detailGroup.style.display = "block"; // Show details of leave
+        }
+        if (
+        selectedType === "Vacation Leave" ||
+        selectedType === "Sick Leave" ||
+        selectedType === "Others:"
+      ) {
+        otherPurposeGroup.style.display = "block";
+      }
+        
+
+          const emergencyCode = document.getElementById("emergency_code");
+        if (
+          selectedType === "10-Day VAWC Leave" ||
+          selectedType === "Special Emergency" ||
+          selectedType === "Rehabilitation Leave" ||
+          selectedType === "Sick Leave" ||
+          selectedType === "Special Privilege Leave" ||
+          selectedType === "Special Emergency"
+        ) {
+          emergencyCode.style.display = "flex";
+        } else {
+          emergencyCode.style.display = "none";
         }
 
         // Hide all options and optgroups
@@ -626,26 +660,49 @@ document.addEventListener("DOMContentLoaded", function () {
                 option.style.display = "none";
             });
         });
+      let matchingGroup = document.querySelector(`optgroup[label*="${selectedType}"]`);
+let otherGroup = document.querySelector('optgroup[label="Other Purpose"]');
 
-        let matchingGroup = document.querySelector(`optgroup[label*="${selectedType}"]`);
-        if (matchingGroup) {
-            matchingGroup.style.display = "block";
-            Array.from(matchingGroup.children).forEach(option => {
-                option.style.display = "block";
-            });
-        } else {
-            // Show "Other Purpose" if no match
-            let otherGroup = document.querySelector('optgroup[label="Other Purpose"]');
-            if (otherGroup) {
-                otherGroup.style.display = "block";
-                Array.from(otherGroup.children).forEach(option => {
-                    option.style.display = "block";
-                });
-            }
-        }
+// Always hide all first
+optGroups.forEach(group => {
+    group.style.display = "none";
+    Array.from(group.children).forEach(option => {
+        option.style.display = "none";
+    });
+});
 
-        // Show "Others Details" input if "Others" is selected
-        typeOthersDetails.style.display = selectedType === "Others:" ? "inline-block" : "none";
+// Show "Vacation Leave" if "Special Privilege Leave" is selected
+if (selectedType === "Special Privilege Leave") {
+    let vacationGroup = document.querySelector('optgroup[label="Vacation Leave"]');
+    if (vacationGroup) {
+        vacationGroup.style.display = "block";
+        Array.from(vacationGroup.children).forEach(option => {
+            option.style.display = "block";
+        });
+    }
+}
+
+// Show matching group if available
+if (matchingGroup) {
+    matchingGroup.style.display = "block";
+    Array.from(matchingGroup.children).forEach(option => {
+        option.style.display = "block";
+    });
+}
+
+// Show "Other Purpose" if the selected type is Vacation, Sick, or Others:
+if (["Vacation Leave", "Sick Leave", "Others:"].includes(selectedType)) {
+    if (otherGroup) {
+        otherGroup.style.display = "block";
+        Array.from(otherGroup.children).forEach(option => {
+            option.style.display = "block";
+        });
+    }
+}
+
+// Show "Others Details" input if "Others:" is selected
+typeOthersDetails.style.display = selectedType === "Others:" ? "inline-block" : "none";
+
     });
 
     // Show Date Filing based on Details selection
@@ -674,7 +731,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "Sick Leave": 5,
         "Maternity Leave": 1,
         "Paternity Leave": 1,
-        "Special Privilage Leave": 7,
+        "Special Privilege Leave": 7,
         "Solo Parent Leave": 7,
         "Study Leave": 1,
         "10-Day VAWC Leave": 1,

@@ -149,6 +149,7 @@ public function leave_store(Request $request)
     $existing = Leave::where('month', $request->month)
                     ->where('employee_id', $request->employee_id)
                     ->where('year', $request->year)
+                    ->where('date', $request->date)
                     ->first();
 
     if ($existing) {
@@ -694,11 +695,13 @@ public function registerUser(Request $request)
         }
         $countleave = Application_leave::count();
         $countemployee  = Employee_Account::where('role', 'user')->count();
-        $leave = Application_leave::where('status', 'Pending')->get();
+        $leave = Application_leave::where('status', 'Pending')
+             ->orderBy('date_filing', 'desc')
+             ->get();
         return view('adminpage.newimprovedashboard', compact('leave','countleave','countemployee'));
     }
     function Admin_Application_Leave(){
-        $leave = Application_leave::orderBy('created_at', 'asc')->get();
+        $leave = Application_leave::orderBy('date_filing', 'desc')->get();
         return view('adminpage.applicationleave', compact('leave'));
     }
   function Admin_Employee_Account() {

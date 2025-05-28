@@ -109,15 +109,3 @@ Route::get('/It', function () {
 });
 
 
-Route::get('/Dashboard', function () {
-    return view('adminpage/dashboard');
-});
-Route::get('/Application-admin', function () {
-    return view('adminpage/application_for_leave');
-});
-Route::get('/layout', function () {
-    return view('layout/layout');
-});
-Route::get('/table', function () {
-    return view('adminpage/table_work');
-});

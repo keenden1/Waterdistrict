@@ -27,7 +27,6 @@
                  <label>Vacation Leave Remaining</label>
                 <input type="text" value="{{$VL.'/3' ?? '3/3'}}" disabled>
              
-
                 <label>Sick Remaining</label>
                 <input type="text" value="{{$SL.'/5' ?? '5/5'}}" disabled>
                 

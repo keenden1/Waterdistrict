@@ -52,7 +52,7 @@
       @if ($application->status == 'Declined')
           <td><span class="red-dot"></span>{{ $application->status }}</td>
       @endif
-      <td>{{ \Carbon\Carbon::parse($application->date_filing)->format('F d, Y') }}</td>
+      <td>{{ \Carbon\Carbon::parse($application->date_filing)->format('d, M Y') }}</td>
       <td>{{ $application->fullname}}</td>
       <td>{{ $application->d_commutation}}</td>
       <td>

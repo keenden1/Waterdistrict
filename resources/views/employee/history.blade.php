@@ -21,7 +21,7 @@
         @if($item->a_availed_others)
         {{ $item->a_availed_others }} 
         @endif</td>
-      <td>{{ $item->date_filing }}</td>
+      <td>{{ \Carbon\Carbon::parse($item->date_filing)->format('d, M Y') }}</td>
       @if ($item->status == 'Pending')
           <td><span class="pending-dot"></span>{{ $item->status }}</td>
       @endif
@@ -38,7 +38,7 @@
           
              <div class="row"><span class="label">Date Filing:</span></div>
               <div class="row">
-                  <span>{{ $item->date_filing }} </span>
+              <span>{{ \Carbon\Carbon::parse($item->date_filing)->format('d, M Y') }}</span>
               </div>
 
 
