@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('role')->nullable();
             $table->string('account_status')->nullable();
             $table->string('profile_picture')->nullable();
+            $table->string('e_signature')->nullable();
             $table->timestamps();
         });
     }

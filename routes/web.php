@@ -31,6 +31,7 @@ Route::get('/Application-History', [Employee::class,'History'])->name('History-p
 
 Route::get('/Profile', [Employee::class,'Profile'])->name('Profile-page');
 Route::put('/Profile-update', [Employee::class,'Profile_update'])->name('profile.update');
+Route::put('/profile/e-signature', [Employee::class, 'updateESignature'])->name('profile.e_signature');
 
 
 

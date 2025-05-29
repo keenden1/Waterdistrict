@@ -47,6 +47,7 @@ function Check()
    
 
 }
+
 public function Profile_update(Request $request)
 {
     $request->validate([
@@ -76,6 +77,41 @@ public function Profile_update(Request $request)
 
     return redirect()->back()->with('error', 'Employee not found.');
 }
+
+
+public function updateESignature(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email|exists:employee_account,email',
+        'e_signature' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
+    ]);
+
+    $employee = Employee_Account::where('email', $request->email)->first();
+
+    if ($employee) {
+        // Delete old profile picture if it exists
+        if ($employee->e_signature && file_exists(public_path($employee->e_signature))) {
+            unlink(public_path($employee->e_signature));
+        }
+
+        // Store the new uploaded image
+        $file = $request->file('e_signature');
+        $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path('e_signature'), $filename);
+
+        // Update the profile picture path in the database
+        $employee->e_signature = 'e_signature/' . $filename;
+        $employee->save();
+
+        return redirect()->back()->with('success', 'Profile picture updated successfully!');
+    }
+
+    return redirect()->back()->with('error', 'Employee not found.');
+}
+
+
+
+
 
 function Landingpage()
 {

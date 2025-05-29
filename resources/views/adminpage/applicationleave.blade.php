@@ -56,15 +56,7 @@
       <td>{{ $application->fullname}}</td>
       <td>{{ $application->d_commutation}}</td>
       <td>
-      <button popovertarget="myPopover-{{ $application->id }}" class="btn1"  
-      style="
-            padding: 5px 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-           ">View</button>
+      <button popovertarget="myPopover-{{ $application->id }}" class="btn5" >View</button>
     </td>
 
 
@@ -464,6 +456,27 @@ table {
         display: inline-block; /* Ensures it behaves like a dot */
         margin-right: 10px;
         }
+        .btn5 {
+            background-color: #016a70;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.3s ease;
+          }
+
+          .btn5:hover {
+            background-color: #018c94;
+          }
+           .btn5:active {
+            background-color:rgb(1, 122, 129);
+            transform: scale(0.98);
+            }
 </style>
 <script>
 function confirmAction(applicationId, popoverId) {

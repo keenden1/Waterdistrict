@@ -110,7 +110,7 @@
     </td>
     <td style="text-align: center;">
       @if(isset($rightColumn[$i]))
-        <button class="btn-add-entry " onclick="document.getElementById('editPopoverleft{{ $rightColumn[$i]->id }}').style.display='block'">
+        <button class="btn-add-entry" onclick="document.getElementById('editPopoverleft{{ $rightColumn[$i]->id }}').style.display='block'">
       <i class='bx bxs-edit-alt'></i>
     </button>
 
@@ -418,6 +418,11 @@
   .btn-add-entry:hover {
     background-color: #018c94;
   }
+
+  .btn-add-entry:active {
+            background-color:rgb(1, 122, 129);
+            transform: scale(0.98);
+            }
 </style>
 <script>
   document.addEventListener('DOMContentLoaded', function () {

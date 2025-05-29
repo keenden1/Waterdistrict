@@ -31,9 +31,22 @@
                 <input type="text" value="{{$FL.'/5' ?? '5/5'}}" disabled>
                 
                 <label>Leave of Credit - YTD</label>
+
                 <input type="text" value="{{$balance->total_leave_earned ?? '0'}}" disabled>
+
+                 <label>E-Signature</label>
+                @if ($employee->e_signature)
+                    <div style="text-align: center; margin-top: 10px;">
+                        <img src="{{ asset($employee->e_signature) }}" alt="E-Signature" style="width: 250px; height: 100px; object-fit: contain; border: 1px solid #ccc;">
+                    </div>
+                @else
+                    <p style="text-align: center; color: gray;">No e-signature uploaded</p>
+                @endif
                 
-                <button class="save-btn">Update</button>
+                <div style="display: flex; justify-content:space-evenly;">
+                       <button class="save-btn" id="editProfileBtn">Update</button>
+                       <button class="save-btn" id="eSignBtn">E-Signature</button>
+                </div>
             </div>
 <!-- Edit Profile Modal -->
 <div id="editProfileModal" class="modal">
@@ -54,7 +67,24 @@
         </form>
     </div>
 </div>
+<!-- Edit Profile Modal -->
+<div id="eSignModal" class="modal">
+    <div class="modal-content">
+        <span class="close-esign">&times;</span>
+        <h2>Upload E-Signature</h2>
+        <form action="{{ route('profile.e_signature') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
 
+            <div style="margin-top: 15px; display:flex; align-items:center; justify-content:center;">
+                <img id="esignPreview" src="#" alt="E-Sign Preview" style="display:none; width: 320px; height: 120px; object-fit: contain; border: 1px solid #ccc;">
+            </div>
+            <input type="file" name="e_signature" accept="image/*" onchange="previewEsign(event)" required>
+            <input type="hidden" name="email" value="{{ $employee->email }}">
+            <button type="submit" class="save-btn" style="margin-top: 15px;">Upload</button>
+        </form>
+    </div>
+</div>
 
 
         </div>
@@ -149,7 +179,7 @@
     position: relative;
 }
 
-.close {
+.close,.close-esign {
     color: #aaa;
     float: right;
     font-size: 28px;
@@ -169,62 +199,87 @@
 
 </style>
 <script>
-    const modal = document.getElementById('editProfileModal');
-    const btn = document.querySelector('.save-btn');
-    const span = document.querySelector('.close');
+    const profileModal = document.getElementById('editProfileModal');
+    const profileBtn = document.getElementById('editProfileBtn');
+    const profileClose = document.querySelector('.close');
 
-    btn.onclick = function() {
-        modal.style.display = 'block';
-    }
+    const eSignModal = document.getElementById('eSignModal');
+    const eSignBtn = document.getElementById('eSignBtn');
+    const eSignClose = document.querySelector('.close-esign');
 
-    span.onclick = function() {
-        modal.style.display = 'none';
-    }
+    // Profile modal logic
+    profileBtn.onclick = () => profileModal.style.display = 'block';
+    profileClose.onclick = () => {
+        profileModal.style.display = 'none';
+        clearPreview();
+    };
 
+    // E-sign modal logic
+    eSignBtn.onclick = () => eSignModal.style.display = 'block';
+    eSignClose.onclick = () => {
+        eSignModal.style.display = 'none';
+        clearEsignPreview();
+    };
+
+    // Click outside to close
     window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
+        if (event.target == profileModal) {
+            profileModal.style.display = 'none';
+            clearPreview();
+        }
+        if (event.target == eSignModal) {
+            eSignModal.style.display = 'none';
+            clearEsignPreview();
         }
     }
 
-function previewImage(event) {
-    const fileInput = event.target;
-    const output = document.getElementById('profilePreview');
+    function previewImage(event) {
+        const fileInput = event.target;
+        const output = document.getElementById('profilePreview');
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                output.src = reader.result;
+                output.style.display = 'block';
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            output.src = '#';
+            output.style.display = 'none';
+        }
+    }
 
-    // If a file is selected
-    if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function () {
-            output.src = reader.result;
-            output.style.display = 'block';
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    } else {
-        // No file selected (e.g., user cancels)
+    function clearPreview() {
+        const fileInput = document.querySelector('input[name="profile_picture"]');
+        const output = document.getElementById('profilePreview');
+        fileInput.value = '';
         output.src = '#';
         output.style.display = 'none';
     }
-}
-function clearPreview() {
-    const fileInput = document.querySelector('input[name="profile_picture"]');
-    const output = document.getElementById('profilePreview');
 
-    fileInput.value = ''; // Clear the file input
-    output.src = '#';
-    output.style.display = 'none';
-}
-span.onclick = function() {
-    modal.style.display = 'none';
-    clearPreview(); // Reset the image
-}
-
-window.onclick = function(event) {
-    if (event.target == modal) {
-        modal.style.display = 'none';
-        clearPreview(); // Reset the image
+    function previewEsign(event) {
+        const fileInput = event.target;
+        const output = document.getElementById('esignPreview');
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                output.src = reader.result;
+                output.style.display = 'block';
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            output.src = '#';
+            output.style.display = 'none';
+        }
     }
-}
 
+    function clearEsignPreview() {
+        const fileInput = document.querySelector('input[name="e_signature"]');
+        const output = document.getElementById('esignPreview');
+        fileInput.value = '';
+        output.src = '#';
+        output.style.display = 'none';
+    }
 </script>
 
 @endsection
