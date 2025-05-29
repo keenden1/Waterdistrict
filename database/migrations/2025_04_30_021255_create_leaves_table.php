@@ -17,7 +17,11 @@ return new class extends Migration
         Schema::create('leaves', function (Blueprint $table) {
             $table->id();
             $table->integer('employee_id')->nullable();
-            $table->string('name')->nullable();
+
+            $table->string('fname')->nullable();
+            $table->string('mname')->nullable();
+            $table->string('lname')->nullable();
+                
             $table->string('date')->nullable();
             $table->string('month')->nullable();
             $table->string('year')->nullable();
@@ -47,6 +51,7 @@ return new class extends Migration
             $table->integer('minutes_A_T')->nullable();
             $table->integer('times_A_T')->nullable();
 
+            $table->decimal('total_conversion', 5, 3)->nullable();
             
             $table->integer('day_Under')->nullable();
             $table->integer('hour_Under')->nullable();

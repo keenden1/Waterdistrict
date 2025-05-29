@@ -13,7 +13,9 @@ class Leave extends Model
 
     protected $fillable = [
         'employee_id',
-        'name',
+        'fname',
+        'mname',
+        'lname',
         'date',
         'month',
         'year',
@@ -44,5 +46,6 @@ class Leave extends Model
         'hour_Under',
         'minutes_Under',
         'times_Under',
+        'total_conversion'
     ];
 }

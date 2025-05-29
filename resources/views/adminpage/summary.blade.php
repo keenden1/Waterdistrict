@@ -6,13 +6,13 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="search_div" style="display: flex; align-items:center; justify-content:space-between; margin: 0 10px; ">
-    <span style="display: flex; justify-content:start;"> <h2>&nbsp;Tardiness and Undertime</h2><h2>&nbsp;as of 31 January 2025</h2></span>
+    <span style="display: flex; justify-content:start;"> <h2>&nbsp;Tardiness and Undertime</h2><h2>&nbsp;as of {{$lastDay}}</h2></span>
     <button class="btn2">Generate Report</button>
     </div>
 </div>
 
 <div style="max-height: 620px; overflow-y: auto; border: 1px solid #ccc; margin-top:5px;margin-bottom:10px; border-radius:5px;">
-<table id="leaveTable" border="1" style="border-collapse: collapse; width: 100%; text-align: center; border-radius:5px;"">
+<table id="leaveTable" border="1" style="border-collapse: collapse; width: 100%; text-align: center; border-radius:5px;">
   <thead>
     <tr><td rowspan="2">No.</td>
         <td colspan="3">Employee Name</td>
@@ -41,43 +41,50 @@
    
   </thead>
   <tbody>
+     @forelse ($leaves as $leave)
     <tr>
-        <td>1</td>
-        <td>jim</td>
-        <td>well</td>
-        <td>ocampo</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0.002</td>
-    </tr>
-    <tr>
-      <td colspan="4" style="text-align: center;"> TOTAL</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td style="border-bottom: #fff;"></td>
+         <td>{{ $loop->iteration }}</td>
+        <td>{{ $leave->lname ?? ''}}</td>
+        <td>{{ $leave->fname ?? ''}}</td>
+        <td>{{ $leave->mname ?? ''}}</td>
+        <td>{{ $leave->day_A_T ?? '0'}}</td>
+        <td>{{ $leave->hour_A_T ?? '0'}}</td>
+        <td>{{ $leave->minutes_A_T ?? '0'}}</td>
+        <td>{{ $leave->times_A_T ?? '0'}}</td>
+        <td>{{ $leave->day_Under ?? '0'}}</td>
+        <td>{{ $leave->hour_Under ?? '0'}}</td>
+        <td>{{ $leave->minutes_Under ?? '0'}}</td>
+        <td>{{ $leave->times_Under ?? '0'}}</td>
+        <td>{{ ($leave->day_A_T ?? 0) + ($leave->day_Under ?? 0) }}</td>
+        <td>{{ ($leave->hour_A_T ?? 0) + ($leave->hour_Under ?? 0) }}</td>
+        <td>{{ ($leave->minutes_A_T ?? 0) + ($leave->minutes_Under ?? 0) }}</td>
+        <td>{{ ($leave->times_A_T ?? 0) + ($leave->times_Under ?? 0) }}</td>
       
+        <td>{{ $leave->total_conversion ?? ''}}</td>
     </tr>
-   
+    @empty
+    <tr>
+      <td colspan="17" style="text-align: center; height:300px; font-size:32px;">No Record Found</td>
+    </tr>
+  @endforelse
+ @if ($leaves->count() > 0)
+    <tr>
+        <td colspan="4" style="text-align: center;"><strong>TOTAL</strong></td>
+        <td>{{ $sum_day ?? '0' }}</td>
+        <td>{{ $sum_hour ?? '0' }}</td>
+        <td>{{ $sum_minutes ?? '0' }}</td>
+        <td>{{ $sum_times ?? '0' }}</td>
+        <td>{{ $sum_day_1 ?? '0' }}</td>
+        <td>{{ $sum_hour_1 ?? '0' }}</td>
+        <td>{{ $sum_minutes_1 ?? '0' }}</td>
+        <td>{{ $sum_times_1 ?? '0' }}</td>
+        <td>{{ ($sum_day ?? 0) + ($sum_day_1 ?? 0) }}</td>
+        <td>{{ ($sum_hour ?? 0) + ($sum_hour_1 ?? 0) }}</td>
+        <td>{{ ($sum_minutes ?? 0) + ($sum_minutes_1 ?? 0) }}</td>
+        <td>{{ ($sum_times ?? 0) + ($sum_times_1 ?? 0) }}</td>
+        <td></td>
+    </tr>
+@endif
   </tbody>
 
 </table>

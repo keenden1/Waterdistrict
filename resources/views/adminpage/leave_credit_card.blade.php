@@ -13,7 +13,7 @@
     </div>
 </div>
 <div class="table-name" style="justify-content:space-between">
-    <div class="div-name-header" style="display: flex; align-items:center; Justify-content: center; font-size:32px;">Name: <p style="text-transform: capitalize;text-decoration: underline; margin:0 0 0 20px; font-size:32px;">asdasdas</p></div>
+    <div class="div-name-header" style="display: flex; align-items:center; Justify-content: center; font-size:32px;">Name: <p style="text-transform: capitalize;text-decoration: underline; margin:0 0 0 20px; font-size:32px;">{{$name}}</p></div>
     <div style="border:3px solid #333; display:flex;"> 
             <table class="table-card">
                 <tbody>
@@ -94,72 +94,85 @@
         <td colspan="7" style="text-align: center;"><strong>BALANCE BROUGHT FORWARD</strong> </td>
         <td></td>
         <td></td>
-        <td style="text-align: center;"><strong>0.00</strong></td>
+        <td style="text-align: center;"><strong>{{$vl_oldbalance}}</strong></td>
         <td></td>
         <td></td>
         <td></td>
-        <td style="text-align: center;"><strong>0.00</strong></td>
+        <td style="text-align: center;"><strong>{{$sl_oldbalance}}</strong></td>
         <td></td>
-        <td style="text-align: center;"><strong>0.00</strong></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td style="text-align: center;"><strong>2010</strong> </td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td style="text-align: center;"><strong>{{$total_oldbalance}}</strong></td>
         <td></td>
     </tr>
     <tr>
-      <td style="text-align: center;">January</td>
-      <td style="text-align: center;">12</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
+        <td style="text-align: center;"><strong>{{$year}}</strong> </td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
     </tr>
+   
+     @forelse($leaves as $leave)
     <tr>
-        <td style="text-align: center;"><strong>TOTAL</strong> </td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+      <td style="text-align: center;">{{ \Carbon\Carbon::create()->month($leave->month)->format('F') ?? '' }}</td>
+      <td style="text-align: center;">{{ $leave->date ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->fl ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->sl ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->spl ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->other ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl_earned ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl_absences_withpay ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl_balance ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl_absences_withoutpay ?? ''}}</td>
+
+      <td style="text-align: center;">{{ $leave->sl_earned ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->sl_absences_withpay ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->sl_balance ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->sl_absences_withoutpay ?? ''}}</td>
+
+      <td style="text-align: center;">{{ $leave->total_leave_earned ?? ''}}</td>
+      <td style="text-align: center;"> </td>
     </tr>
+    
+<tr>
+    <td style="text-align: center;"><strong>TOTAL</strong></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+</tr>
+@empty
+    <tr>
+        <td colspan="17" rowspan="10" style="height: 250px; text-align: center; font-size:32px;">No record Found</td>
+    </tr>
+    
+@endforelse
+
+
 </table>
 
 

@@ -25,6 +25,7 @@ use Kreait\Firebase\Auth\SignIn\FailedToSignIn;
 use Kreait\Firebase\Exception\InvalidArgumentException;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 
 class Admin extends Controller
@@ -133,6 +134,9 @@ public function leave_store(Request $request)
 
     $totalminVl = getEquivalentDayFromMinutes($Vl_totalMinutes);
     $totalminSl = getEquivalentDayFromMinutes($SL_totalMinutes);
+ 
+
+    $total_conversion = $totalminVl + $totalminSl;
 
     // Already subtracting absences from earned leave here
     $vl_earned_data = floatval($request->vl_earned) - $totalminVl;
@@ -221,6 +225,14 @@ public function leave_store(Request $request)
     $data['vl_balance'] = $vl_balance;
     $data['sl_balance'] = $sl_balance;
     $data['total_leave_earned'] = $total_leave_earned;
+    $data['total_conversion'] = $total_conversion;
+    
+    $Name = Employee_Account::where('employee_id', $request->employee_id)->first();
+
+    $data['fname'] = $Name->fname;
+    $data['mname'] = $Name->mname;
+    $data['lname'] = $Name->lname;
+
 
     Leave::create($data);
 
@@ -718,83 +730,67 @@ public function registerUser(Request $request)
         $employees = Employee_Account::where('account_status', '!=', 'pending')->get();
         return view('adminpage.formleavecredit', compact('employees'));
     }
-    function Admin_Leave_Credit_Card_Generate(Request $request){
-        $request->validate([
-            'employee' => 'required',
-            'year' => 'required|numeric',
-        ]);
-        $email = $request->employee;
-        $year = $request->year;
-        $employee = Employee_Account::where('email', $email)->first();
-      
-        return view('adminpage.leave_credit_card');
-    }
-    public function saAdmin_Leave_Credit_Card_Generate(Request $request)
-    {
-        $request->validate([
-            'employee' => 'required',
-            'year' => 'required|numeric',
-        ]);
-    
-        $email = $request->employee;
-        $year = $request->year;
-    
-        $employee = Employee_Account::where('email', $email)->first();
-    
-        if (!$employee) {
-            return back()->with('error', 'Employee not found.');
+
+function Admin_Leave_Credit_Card_Generate(Request $request){
+    $request->validate([
+        'employee' => 'required',
+        'year' => 'required|numeric',
+    ]);
+
+    $email = $request->employee;
+    $year = $request->year;
+  
+
+
+    $employee = Employee_Account::where('email', $email)->first();
+
+    // Get current year leaves
+    $leaves = Leave::where('employee_id', $employee->employee_id)
+                   ->where('year', $year)
+                   ->orderByRaw('CAST(month AS UNSIGNED)')
+                   ->get();
+   $months = $leaves->pluck('month'); // returns a collection of months
+
+
+    // Determine the previous month and year
+    $firstLeave = $leaves->first();
+    if ($firstLeave) {
+        $prevMonth = $firstLeave->month - 1;
+        $prevYear = $year;
+        if ($prevMonth == 0) {
+            $prevMonth = 12;
+            $prevYear = $year - 1;
         }
-    
-        $vl_balance = 0;
-        $sl_balance = 0;
-        $monthly_data = [];
-    
-        for ($month = 1; $month <= 12; $month++) {
-            // Earned this month
-            $vl_earned = 1.25;
-            $sl_earned = 1.25;
-    
-            // Get leave taken this month
-            $leaves_taken = DB::table('leaves')
-                ->where('employee_id', $employee->id)
-                ->whereYear('date', $year)
-                ->whereMonth('date', $month)
-                ->select('leave_type', DB::raw('SUM(days_used) as total_used'))
-                ->groupBy('leave_type')
-                ->pluck('total_used', 'leave_type')
-                ->toArray();
-    
-            $vl_used = $leaves_taken['VL'] ?? 0;
-            $sl_used = $leaves_taken['SL'] ?? 0;
-    
-            // Compute balances
-            $vl_balance += ($vl_earned - $vl_used);
-            $sl_balance += ($sl_earned - $sl_used);
-    
-            $monthly_data[] = [
-                'month' => date('F', mktime(0, 0, 0, $month, 10)),
-                'vl_earned' => $vl_earned,
-                'vl_used' => $vl_used,
-                'vl_balance' => round($vl_balance, 3),
-                'sl_earned' => $sl_earned,
-                'sl_used' => $sl_used,
-                'sl_balance' => round($sl_balance, 3),
-                'total_earned' => round(($month * ($vl_earned + $sl_earned)), 3),
-            ];
-        }
-    
-        return view('adminpage.leave_credit_card', [
-            'employee' => $employee,
-            'year' => $year,
-            'monthly_data' => $monthly_data,
-        ]);
+
+        // Get previous leave record
+        $previousLeave = Leave::where('employee_id', $employee->employee_id)
+                              ->where('month', $prevMonth)
+                              ->where('year', $prevYear)
+                              ->latest('id') // just in case there are duplicates
+                              ->first();
+
+        $vl_oldbalance = $previousLeave->vl_balance ?? 0;
+        $sl_oldbalance = $previousLeave->sl_balance ?? 0;
+        $total_oldbalance = $previousLeave->total_leave_earned ?? 0;
+    } else{
+        $vl_oldbalance = 0;
+        $sl_oldbalance = 0;
+        $total_oldbalance = 0;
     }
-    
+    $name = $employee->fname . ' ' . 
+            ($employee->mname ? strtoupper(substr($employee->mname, 0, 1)) . '. ' : '') . 
+            $employee->lname;
+
+
+    return view('adminpage.leave_credit_card', compact('employee', 'year', 'leaves', 
+    'vl_oldbalance','sl_oldbalance','total_oldbalance','name'));
+}
 
 
     function Admin_Summary(){
         return view('adminpage.formsummary');
     }
+
     public function Admin_Summary_Generate(Request $request){
 
         $request->validate([
@@ -802,11 +798,56 @@ public function registerUser(Request $request)
             'year' => 'required|numeric',
         ]);
     
-        return view('adminpage.summary');
+          $month = $request->month;
+          $year = $request->year;
+
+    // Get current year leaves
+     $leaves = Leave::where('year', $year)
+                   ->where('month' , $month)
+                   ->get();
+
+      $sum_day = $leaves->sum(function ($leave) {
+            return $leave->day_A_T ?? 0;
+        });
+    
+      $sum_hour = $leaves->sum(function ($leave) {
+            return $leave-> hour_A_T ?? 0;
+        });
+      $sum_minutes = $leaves->sum(function ($leave) {
+            return $leave-> minutes_A_T ?? 0;
+        });
+      $sum_times = $leaves->sum(function ($leave) {
+            return $leave-> times_A_T ?? 0;
+        });
+
+        
+      $sum_day_1 = $leaves->sum(function ($leave) {
+            return $leave-> day_Under ?? 0;
+        });
+    
+      $sum_hour_1 = $leaves->sum(function ($leave) {
+            return $leave-> hour_Under ?? 0;
+        });
+      $sum_minutes_1 = $leaves->sum(function ($leave) {
+            return $leave->	minutes_Under ?? 0;
+        });
+      $sum_times_1 = $leaves->sum(function ($leave) {
+            return $leave->times_Under ?? 0;
+        });
+
+    $month = $request->month;
+    $year = $request->year;
+  
+    $date = Carbon::create($year, $month, 1);
+    $lastDay = $date->endOfMonth()->format('d F Y');
+
+        return view('adminpage.summary',compact('lastDay','leaves',
+        'sum_day','sum_hour','sum_minutes','sum_times',
+         'sum_day_1','sum_hour_1','sum_minutes_1','sum_times_1',
+    ));
     }
 
- 
-   
+
 
     public function Admin_Employee_salary(){
         // Fetch and group the data by 'year'
@@ -817,6 +858,11 @@ public function registerUser(Request $request)
         // Return the view with the 'data' variable
         return view('adminpage.employee_salary', compact('data'));
     }
+
+
+
+
+
     public function update(Request $request)
 {
     $request->validate([
@@ -846,6 +892,8 @@ public function registerUser(Request $request)
     function Admin_Terminal_Leave(){
         return view('adminpage.formterminal');
     }
+
+    
     public function Admin_Terminal_Leave_Generate(Request $request)
     {
         $month = $request->input('month'); // This is a number, e.g., 1 for January, 12 for December
