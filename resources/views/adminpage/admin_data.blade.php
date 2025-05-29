@@ -212,8 +212,8 @@ Swal.fire({
       <div class="step">
           <h4>Particular</h4>
         <input type="number" step="0.250" min="0" name="vl" placeholder="VL(Vacation Leave)" />
-        <input type="number" step="0.250" min="0" name="sl" placeholder="SL(Sick Leave)" />
         <input type="number" step="0.250" min="0" name="fl" placeholder="fl(Forced Leave)" />
+        <input type="number" step="0.250" min="0" name="sl" placeholder="SL(Sick Leave)" />
         <input type="number" step="0.250" min="0" name="spl" placeholder="spl(Special Leave)" />
         <input type="number" step="0.250" min="0" name="other" placeholder="Other" />
       </div>
@@ -256,7 +256,7 @@ Swal.fire({
           <label for="day">Day</label>
          <input type="number"  name="day_Under"/>
          <label for="hour">Hour</label>
-         <input type="number"  name="hour_Underr"/>
+         <input type="number"  name="hour_Under"/>
          <label for="minutes">Minutes</label>
          <input type="number"  name="minutes_Under"/>
          <label for="times">Times</label>

@@ -157,12 +157,16 @@
             border-radius: 5px;
             cursor: pointer;
             margin-top:20px;">X</button>
+
+            @if($application->status == "Approved" || $application->status == "Declined")
             <a  href="{{ url('/export-users/' . $application->id) }}" target="_blank"
             style="
             position: absolute; 
             top:25px; right:60px; 
             ">
               <i class='bx bx-download' style="font-size: 32px; text-decoration:none; color:#007bff;"></i></a>
+            @endif
+
            </div>
 
     </tr>

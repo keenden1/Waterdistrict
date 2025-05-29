@@ -471,18 +471,18 @@ public function getSalary(Request $request)
                     return redirect('/Check');
                 } else{
              $currentYear = Carbon::now()->year;
-                    $countVL = Application_leave::where('a_availed', 'Vacation Leave')
+                    $countVL = Application_leave::where('a_availed', 'Special Leave')
                       ->where('status', 'Approved')
                       ->whereYear('created_at', $currentYear)
                       ->count();
-                    $countSL = Application_leave::where('a_availed', 'Sick Leave')
+                    $countSL = Application_leave::where('a_availed', 'Forced Leave')
                       ->where('status', 'Approved')
                       ->whereYear('created_at', $currentYear)
                       ->count();
                    
                     $VL= 3 - $countSL;
                     $SL= 5 - $countSL;
-
+                  
                         return view('employee.application_for_leave' ,compact('VL','SL'));
                     }
         } else {
@@ -548,18 +548,18 @@ public function getSalary(Request $request)
                     ->first();
                     
                     $currentYear = Carbon::now()->year;
-                    $countVL = Application_leave::where('a_availed', 'Vacation Leave')
+                    $countVL = Application_leave::where('a_availed', 'Special Leave')
                       ->where('status', 'Approved')
                       ->whereYear('created_at', $currentYear)
                       ->count();
-                    $countSL = Application_leave::where('a_availed', 'Sick Leave')
+                    $countSL = Application_leave::where('a_availed', 'Forced Leave')
                       ->where('status', 'Approved')
                       ->whereYear('created_at', $currentYear)
                       ->count();
                    
-                    $VL= 3 - $countSL;
-                    $SL= 5 - $countSL;
-                        return view('employee.profile',compact('employee','balance','SL', 'VL'));
+                    $SPL= 3 - $countSL;
+                    $FL= 5 - $countSL;
+                        return view('employee.profile',compact('employee','balance','SPL', 'FL'));
                     }
         } else {
             return redirect('/Resend')->with('error', 'Please verify your email.');

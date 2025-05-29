@@ -38,9 +38,10 @@ class Admin extends Controller
 
 public function Input($id) {
      
-    $employee = Leave::where('employee_id', $id)->get();
+    $employee = Leave::where('employee_id', $id)
+       ->orderBy('created_at', 'desc')->get();
 
-    $Account = Employee_Account::where('employee_id', $id)->first();
+    $Account = Employee_Account::where('employee_id', $id)        ->first();
 
     $employee_id_new = $id;
 
@@ -60,12 +61,11 @@ public function deleteWithPassword(Request $request)
     return response()->json(['success' => true]);
 }
 
-
 public function leave_store(Request $request)
 {
-    $check = $request->validate([
+    $request->validate([
         'employee_id' => 'nullable|string',
-        'monthly_salary' => 'required|string',
+        'monthly_salary' => 'nullable|string',
         'month' => 'required|integer|min:1|max:12',
         'year' => 'required|integer|min:2000',
         'date' => 'nullable|string',
@@ -93,7 +93,7 @@ public function leave_store(Request $request)
         'sl_earned' => 'nullable|numeric',
         'sl_absences_withpay' => 'nullable|numeric',
         'sl_absences_withoutpay' => 'nullable|numeric',
-        ], [
+    ], [
         'monthly_salary.required' => 'Please enter the monthly salary.',
         'month.required' => 'Please select a month.',
         'month.integer' => 'Month must be a valid number.',
@@ -103,6 +103,7 @@ public function leave_store(Request $request)
         'year.integer' => 'Year must be a valid number.',
         'year.min' => 'Year must be after 1999.',
     ]);
+
     $day_A_T = $request->input('day_A_T', 0);
     $hour_A_T = $request->input('hour_A_T', 0);
     $minutes_A_T = $request->input('minutes_A_T', 0);
@@ -111,40 +112,31 @@ public function leave_store(Request $request)
     $hour_Under = $request->input('hour_Under', 0);
     $minutes_Under = $request->input('minutes_Under', 0);
 
-    
     $Vl_totalMinutes = ($day_A_T * 480) + ($hour_A_T * 60) + $minutes_A_T;
     $SL_totalMinutes = ($day_Under * 480) + ($hour_Under * 60) + $minutes_Under;
-    
-// Function to get total equivalent day for total minutes, split in chunks max 60 mins each
-        function getEquivalentDayFromMinutes($totalMinutes) {
-            $totalEquivalentDay = 0;
-            while ($totalMinutes > 0) {
-                $chunk = min(60, $totalMinutes);
-                $equivalent = DB::table('working_hour')->where('minutes', $chunk)->value('equivalent_day');
 
-                // fallback if not found in DB
-                if (!$equivalent) {
-                    // assume linear fallback: 1 day = 480 mins
-                    $equivalent = $chunk / 480;
-                }
+    function getEquivalentDayFromMinutes($totalMinutes) {
+        $totalEquivalentDay = 0;
+        while ($totalMinutes > 0) {
+            $chunk = min(60, $totalMinutes);
+            $equivalent = DB::table('working_hour')->where('minutes', $chunk)->value('equivalent_day');
 
-                $totalEquivalentDay += floatval($equivalent);
-                $totalMinutes -= $chunk;
+            if (!$equivalent) {
+                $equivalent = $chunk / 480;
             }
-            return $totalEquivalentDay;
+
+            $totalEquivalentDay += floatval($equivalent);
+            $totalMinutes -= $chunk;
         }
+        return $totalEquivalentDay;
+    }
 
-        $totalminVl = getEquivalentDayFromMinutes($Vl_totalMinutes);
-        $totalminSl = getEquivalentDayFromMinutes($SL_totalMinutes);
+    $totalminVl = getEquivalentDayFromMinutes($Vl_totalMinutes);
+    $totalminSl = getEquivalentDayFromMinutes($SL_totalMinutes);
 
-
-    
-
-    $vl_values = $totalminVl; 
-    $sl_values = $totalminSl;
-  
-    $vl_earned_data =  floatval($request->vl_earned) - $vl_values;
-    $sl_earned_data = floatval($request->sl_earned) - $sl_values;
+    // Already subtracting absences from earned leave here
+    $vl_earned_data = floatval($request->vl_earned) - $totalminVl;
+    $sl_earned_data = floatval($request->sl_earned) - $totalminSl;
 
     $existing = Leave::where('month', $request->month)
                     ->where('employee_id', $request->employee_id)
@@ -156,7 +148,21 @@ public function leave_store(Request $request)
         return redirect()->back()->withErrors(['duplicate' => 'A leave record for this month and year already exists.']);
     }
 
-    $prevMonth = $request->month - 1;
+     $samemonth = Leave::where('month', $request->month)
+                    ->where('employee_id', $request->employee_id)
+                    ->where('year', $request->year)
+                    ->first();
+
+    if($samemonth){
+        $prevMonth = $request->month;
+        $vl_earned_data = 0;
+        $sl_earned_data = 0;
+    }else{
+         $prevMonth = $request->month - 1;
+    }
+
+
+
     $prevYear = $request->year;
 
     if ($prevMonth < 1) {
@@ -164,64 +170,63 @@ public function leave_store(Request $request)
         $prevYear -= 1;
     }
 
-        $previousLeave = Leave::where('month', $prevMonth)
-                          ->where('year', $prevYear)
-                          ->first();
-        
-        $currentvl = $request->vl  ?? 0;
-        $currentsl = $request->sl  ?? 0;
-        $vl_earned = $vl_earned_data - $currentvl ?? 0;
-        $sl_earned = $sl_earned_data - $currentsl ?? 0;
-       
-        $prev_vl_balance = $previousLeave?->vl_balance ?? 0;
-        $prev_sl_balance = $previousLeave?->sl_balance ?? 0;
+   $previousLeave = Leave::where('month', $prevMonth)
+                      ->where('year', $prevYear)
+                      ->where('employee_id', $request->employee_id)
+                      ->orderBy('created_at', 'desc') // or 'updated_at'
+                      ->first();
+    
 
-        $checkvl = $prev_vl_balance - $currentvl;
-        $checksl = $prev_sl_balance - $currentsl;
+    $prev_vl_balance = $previousLeave?->vl_balance ?? 0;
+    $prev_sl_balance = $previousLeave?->sl_balance ?? 0;
+    
+    $currentvl = $request->vl ?? 0 + $request->fl ?? 0;
+    $currentsl = $request->sl ?? 0;
 
-         $leaveCount = Leave::where('employee_id', $request->employee_id)->count();
-        if ($leaveCount >= 5) {
-            if($checkvl  <= 5){
-               
-                 return back()->withErrors([
-                    'Balance' => "VL exceeds available balance. You must keep at least 5.000 ."
-                ])->withInput();
-            }
-            if($checksl <= 5){
-                 return back()->withErrors([
-                    'Balance' => "SL exceeds available balance. You must keep at least 5.000 ."
-                ])->withInput();
-            }
+    // Corrected: remove double subtraction
+    $vl_earned = $vl_earned_data;
+    $sl_earned = $sl_earned_data;
 
+    $checkvl = $prev_vl_balance - $currentvl;
+    $checksl = $prev_sl_balance - $currentsl;
+      
+    $leaveCount = Leave::where('employee_id', $request->employee_id)->count();
+    if ($leaveCount >= 5) {
+        if ($checkvl <= 5) {
+            return back()->withErrors([
+                'Balance' => "VL exceeds available balance. You must keep at least 5.000."
+            ])->withInput();
         }
+        if ($checksl <= 5) {
+            return back()->withErrors([
+                'Balance' => "SL exceeds available balance. You must keep at least 5.000."
+            ])->withInput();
+        }
+    }
 
-        $vl_balance = $vl_earned + $prev_vl_balance;
-        $sl_balance = $sl_earned + $prev_sl_balance;
-        $total_leave_earned = $vl_balance + $sl_balance;
+    // Final balance computation
+    $vl_balance = $vl_earned + $checkvl;
+    $sl_balance = $sl_earned + $checksl;
+    $total_leave_earned = $vl_balance + $sl_balance;
 
-        
+    $data = $request->only([
+        'employee_id', 'month', 'year', 'date',
+        'vl', 'sl', 'fl', 'spl', 'other',
+        'day_A_T', 'hour_A_T', 'minutes_A_T', 'times_A_T',
+        'day_Under', 'hour_Under', 'minutes_Under', 'times_Under',
+    ]);
 
-       $data = $request->only([
-        'employee_id',
-        'month','year','date',
-        'vl','sl','fl','spl','other',
-        
-        'day_A_T', 'hour_A_T','minutes_A_T','times_A_T',
-        'day_Under', 'hour_Under','minutes_Under','times_Under',
-         ]);
-
-
-        $data['vl_earned'] = $vl_earned_data;
-        $data['sl_earned'] = $sl_earned_data;
-        $data['vl_balance'] = $vl_balance;
-        $data['sl_balance'] = $sl_balance;
-        $data['total_leave_earned'] = $total_leave_earned;
-        
+    $data['vl_earned'] = $vl_earned_data;
+    $data['sl_earned'] = $sl_earned_data;
+    $data['vl_balance'] = $vl_balance;
+    $data['sl_balance'] = $sl_balance;
+    $data['total_leave_earned'] = $total_leave_earned;
 
     Leave::create($data);
 
     return redirect()->back()->with('success', 'Leave record added successfully.');
 }
+
 
 
 
