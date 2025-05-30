@@ -146,33 +146,37 @@
       <td style="text-align: center;"> </td>
     </tr>
     
-<tr>
-    <td style="text-align: center;"><strong>TOTAL</strong></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-</tr>
+
 @empty
     <tr>
         <td colspan="17" rowspan="10" style="height: 250px; text-align: center; font-size:32px;">No record Found</td>
     </tr>
+   
+</tr>
     
 @endforelse
 
-
+@if ($leaves->count() > 0)
+<tr>
+    <td style="text-align: center;"><strong>TOTAL</strong></td>
+    <td></td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL != 0 ? $total_sum_VL : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_FL != 0 ? $total_sum_FL : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL != 0 ? $total_sum_SL : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SPL != 0 ? $total_sum_SPL : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_OTHER != 0 ? $total_sum_OTHER : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL_EARNED != 0 ? $total_sum_VL_EARNED : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL_WITHPAY != 0 ? $total_sum_VL_WITHPAY : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL_BALANCE != 0 ? $total_sum_VL_BALANCE : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL_WITHOUTPAY != 0 ? $total_sum_VL_WITHOUTPAY : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL_EARNED != 0 ? $total_sum_SL_EARNED : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL_WITHPAY != 0 ? $total_sum_SL_WITHPAY : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL_BALANCE != 0 ? $total_sum_SL_BALANCE : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL_WITHOUTPAY != 0 ? $total_sum_SL_WITHOUTPAY : '' }}</td>
+    <td style="text-align: center;font-weight:bold;">{{ $total_sum_total_leave_earned != 0 ? $total_sum_total_leave_earned : '' }}</td>
+    <td></td>
+</tr>
+@endif
 </table>
 
 

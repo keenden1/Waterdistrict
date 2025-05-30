@@ -6,11 +6,13 @@ use App\Models\Application_leave;
 use App\Models\Leave;
 use App\Models\Employee_Account;
 use App\Models\Employee_attendance;
+use App\Models\TerminalLeaveRecord;
 use App\Models\Salary;
 use App\Models\Employee_salary;
 use App\Models\Working_hour;
 use Illuminate\Http\Request;
 use ZipArchive;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -27,10 +29,13 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Color;
 
 class Admin extends Controller
 {
-
+   
   public function samples()
 {
     $leaves = Leave::all();
@@ -66,10 +71,10 @@ public function leave_store(Request $request)
 {
     $request->validate([
         'employee_id' => 'nullable|string',
-        'monthly_salary' => 'nullable|string',
         'month' => 'required|integer|min:1|max:12',
         'year' => 'required|integer|min:2000',
         'date' => 'nullable|string',
+        'monthly_salary' => 'required',
 
         'vl' => 'nullable|numeric',
         'sl' => 'nullable|numeric',
@@ -217,7 +222,7 @@ public function leave_store(Request $request)
         'employee_id', 'month', 'year', 'date',
         'vl', 'sl', 'fl', 'spl', 'other',
         'day_A_T', 'hour_A_T', 'minutes_A_T', 'times_A_T',
-        'day_Under', 'hour_Under', 'minutes_Under', 'times_Under',
+        'day_Under', 'hour_Under', 'minutes_Under', 'times_Under','monthly_salary',
     ]);
 
     $data['vl_earned'] = $vl_earned_data;
@@ -233,12 +238,15 @@ public function leave_store(Request $request)
     $data['mname'] = $Name->mname;
     $data['lname'] = $Name->lname;
 
+    $total_benifits = ($request->monthly_salary ?? 0) * 0.0481927 * ($total_leave_earned ?? 0);
+    $data['constant_factor'] = 0.0481927;
+    $data['total_benifits'] = $total_benifits;
+
 
     Leave::create($data);
 
     return redirect()->back()->with('success', 'Leave record added successfully.');
 }
-
 
 
 
@@ -727,7 +735,10 @@ public function registerUser(Request $request)
 }
 
     function Admin_Leave_Credit_Card(){
-        $employees = Employee_Account::where('account_status', '!=', 'pending')->get();
+     $employees = Employee_Account::where('account_status', '!=', 'Pending')
+    ->where('role', 'user')
+    ->get();
+
         return view('adminpage.formleavecredit', compact('employees'));
     }
 
@@ -740,6 +751,7 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
     $email = $request->employee;
     $year = $request->year;
   
+   
 
 
     $employee = Employee_Account::where('email', $email)->first();
@@ -750,6 +762,8 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
                    ->orderByRaw('CAST(month AS UNSIGNED)')
                    ->get();
    $months = $leaves->pluck('month'); // returns a collection of months
+
+   
 
 
     // Determine the previous month and year
@@ -782,15 +796,193 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
             $employee->lname;
 
 
-    return view('adminpage.leave_credit_card', compact('employee', 'year', 'leaves', 
-    'vl_oldbalance','sl_oldbalance','total_oldbalance','name'));
-}
+      $totalsum_leave = Leave::where('year', $year)
+            ->where('employee_id', $employee->employee_id)
+            ->get();
+     
 
+        $total_sum_VL = $totalsum_leave->sum(function ($leave) {
+            return $leave->vl?? 0;
+        });
+         $total_sum_FL = $totalsum_leave->sum(function ($leave) {
+            return $leave->fl?? 0;
+        });
+         $total_sum_SL = $totalsum_leave->sum(function ($leave) {
+            return $leave->sl?? 0;
+        });
+         $total_sum_SPL = $totalsum_leave->sum(function ($leave) {
+            return $leave->spl?? 0;
+        });
+        $total_sum_OTHER = $totalsum_leave->sum(function ($leave) {
+            return $leave->other?? 0;
+        });
+        // VL
+        $total_sum_VL_EARNED = $totalsum_leave->sum(function ($leave) {
+            return $leave->vl_earned?? 0;
+        });
+         $total_sum_VL_WITHPAY = $totalsum_leave->sum(function ($leave) {
+            return $leave->vl_absences_withpay?? 0;
+        });
+         $total_sum_VL_BALANCE = $totalsum_leave->sum(function ($leave) {
+            return $leave->vl_balance?? 0;
+        });
+         $total_sum_VL_WITHOUTPAY = $totalsum_leave->sum(function ($leave) {
+            return $leave->vl_absences_withoutpay?? 0;
+        });
+        // SL
+      
+         $total_sum_SL_EARNED = number_format(
+            $totalsum_leave->sum(function ($leave) {
+                return $leave->sl_earned ?? 0;
+            }),
+            3
+        );
+         $total_sum_SL_WITHPAY = $totalsum_leave->sum(function ($leave) {
+            return $leave->sl_absences_withpay?? 0;
+        });
+        $total_sum_SL_BALANCE = number_format(
+            $totalsum_leave->sum(function ($leave) {
+                return $leave->sl_balance ?? 0;
+            }),
+            3
+        );
+         $total_sum_SL_WITHOUTPAY = $totalsum_leave->sum(function ($leave) {
+            return $leave->sl_absences_withoutpay ?? 0;
+        });
+        $total_sum_total_leave_earned = $totalsum_leave->sum(function ($leave) {
+            return $leave->total_leave_earned ?? 0;
+        });
+        
+
+    return view('adminpage.leave_credit_card', compact('employee', 'year', 'leaves', 
+    'vl_oldbalance','sl_oldbalance','total_oldbalance','name',
+    'total_sum_VL', 'total_sum_FL','total_sum_SL','total_sum_SPL','total_sum_OTHER',
+    'total_sum_VL_EARNED','total_sum_VL_WITHPAY','total_sum_VL_BALANCE','total_sum_VL_WITHOUTPAY',
+    'total_sum_SL_EARNED','total_sum_SL_WITHPAY','total_sum_SL_BALANCE','total_sum_SL_WITHOUTPAY',
+    'total_sum_total_leave_earned',
+
+    ));
+}
 
     function Admin_Summary(){
         return view('adminpage.formsummary');
     }
 
+      public function export_late_WithTemplate($month, $year)
+    {
+    $monthreq = $month;
+
+    $filePath = public_path('template/late_template.xlsx');
+    $spreadsheet = IOFactory::load($filePath);
+    $sheet = $spreadsheet->getActiveSheet();
+
+    $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+    $dateFormatted = date('d F Y', strtotime("$year-$month-01 +1 month -1 day"));
+
+    // Inject header date
+    $sheet->setCellValue('A12', 'as of ' . $dateFormatted);
+
+   
+    $borderStyle = [
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['argb' => Color::COLOR_BLACK],
+        ],
+        ],
+        ];
+
+        $borderStyle_1 = [
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_RIGHT,  
+            ],
+        ];
+
+  $startRow = 17;
+
+ $late = Leave::where('year', $year)
+        ->where('month', $monthreq)
+        ->get();
+
+// Loop to insert all leave rows
+foreach ($late as $index => $item) {
+    $row = $startRow + $index;
+
+    $sheet->insertNewRowBefore($row);
+    $sheet->setCellValue("A$row", $index + 1);          
+    $sheet->setCellValue("B$row", ucfirst($item->lname));
+    $sheet->setCellValue("C$row", ucfirst($item->fname)); 
+    $sheet->setCellValue("D$row", ucfirst($item->lname));    
+    $sheet->setCellValue("E$row", $item->day_A_T ?? 0);    
+    $sheet->setCellValue("F$row", $item->hour_A_T ?? 0);       
+    $sheet->setCellValue("G$row", $item->minutes_A_T ?? 0);  
+    $sheet->setCellValue("H$row", $item->times_A_T ?? 0);
+    $sheet->setCellValue("I$row", $item->day_Under ?? 0);
+    $sheet->setCellValue("J$row", $item->hour_Under ?? 0);
+    $sheet->setCellValue("K$row", $item->minutes_Under ?? 0);
+    $sheet->setCellValue("L$row", $item->times_Under ?? 0);
+    $sheet->setCellValue("M$row", ($item->day_A_T ?? 0)+($item->day_Under ?? 0)); 
+    $sheet->setCellValue("N$row", ($item->hour_A_T ?? 0)+($item->hour_Under ?? 0)); 
+    $sheet->setCellValue("O$row", ($item->minutes_A_T ?? 0)+($item->minutes_Under ?? 0)); 
+    $sheet->setCellValue("P$row", ($item->times_A_T ?? 0)+($item->times_Under ?? 0)); 
+    $sheet->setCellValue("Q$row", $item->total_conversion ?? '');
+
+}
+    $insertedCount = count($late);
+    $endRow = $startRow + $insertedCount;
+
+    $sumDayAT = $late->sum(function ($item) {
+    return $item->day_A_T ?? 0;
+});
+    $sumHourAT = $late->sum(function ($item) {
+    return $item->hour_A_T ?? 0;
+});
+    $sumMinutesAT = $late->sum(function ($item) {
+    return $item->minutes_A_T ?? 0;
+});
+    $sumTimesAT = $late->sum(function ($item) {
+    return $item->times_A_T ?? 0;
+});
+
+    $sumDayUder = $late->sum(function ($item) {
+    return $item->day_Under?? 0;
+});
+    $sumHourUder = $late->sum(function ($item) {
+    return $item->hour_Under ?? 0;
+});
+    $sumMinutesUder = $late->sum(function ($item) {
+    return $item->minutes_Under ?? 0;
+});
+    $sumTimesUder = $late->sum(function ($item) {
+    return $item->times_Under ?? 0;
+});
+
+    $sheet->setCellValue("E" . $endRow, $sumDayAT);
+    $sheet->setCellValue("f" . $endRow, $sumHourAT);
+    $sheet->setCellValue("G" . $endRow, $sumMinutesAT);
+    $sheet->setCellValue("H" . $endRow, $sumTimesAT);
+
+    $sheet->setCellValue("I" . $endRow, $sumDayUder);
+    $sheet->setCellValue("J" . $endRow, $sumHourUder);
+    $sheet->setCellValue("K" . $endRow, $sumMinutesUder);
+    $sheet->setCellValue("L" . $endRow, $sumTimesUder);
+
+    $sheet->setCellValue("M" . $endRow, ($sumDayAT ?? 0) +  ($sumHourUder ?? 0) );
+    $sheet->setCellValue("N" . $endRow, ($sumHourAT ?? 0) +  ($sumHourUder ?? 0) );
+    $sheet->setCellValue("O" . $endRow, ($sumMinutesAT ?? 0) +  ($sumMinutesUder ?? 0) );
+    $sheet->setCellValue("P" . $endRow, ($sumTimesAT ?? 0) +  ($sumTimesUder ?? 0) );
+
+
+
+    $writer = new Xlsx($spreadsheet);
+    $filename = "Summary_of_Absences_{$year}_{$month}.xlsx";
+
+    return response()->streamDownload(function () use ($writer) {
+        $writer->save('php://output');
+    }, $filename);
+}
+
+    
     public function Admin_Summary_Generate(Request $request){
 
         $request->validate([
@@ -800,6 +992,8 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
     
           $month = $request->month;
           $year = $request->year;
+
+          $monthsreq =$request->month;
 
     // Get current year leaves
      $leaves = Leave::where('year', $year)
@@ -844,6 +1038,7 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
         return view('adminpage.summary',compact('lastDay','leaves',
         'sum_day','sum_hour','sum_minutes','sum_times',
          'sum_day_1','sum_hour_1','sum_minutes_1','sum_times_1',
+         'monthsreq','year'
     ));
     }
 
@@ -885,34 +1080,211 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
 
     return redirect()->back()->with('success', 'Salary updated successfully!');
 }
-
-
-
+     
     
     function Admin_Terminal_Leave(){
         return view('adminpage.formterminal');
     }
 
-    
-    public function Admin_Terminal_Leave_Generate(Request $request)
-    {
-        $month = $request->input('month'); // This is a number, e.g., 1 for January, 12 for December
-        $year = $request->input('year');   // e.g., "2025"
-        
-        // Ensure you're passing the numeric month to the date format (e.g., 1 for January)
-        $monthNumber = str_pad($month, 2, '0', STR_PAD_LEFT); // Ensure two-digit format (e.g., 01, 12)
-        
-        // Get the last day of the month using the provided year and month
-        $date = date('d F Y', strtotime("$year-$monthNumber-01 +1 month -1 day"));
      
-        
-        // Proceed with your leave query
-        $leave = Leave::whereYear('date', $year)
-            ->whereMonth('date', $month)
-            ->get();
-        
-        return view('adminpage.terminal', compact('leave', 'date'));
+    public function Admin_Terminal_Leave_Generate(Request $request){
+
+    $monthsreq = $request-> input('month');
+ 
+    $month = str_pad($request->input('month'), 2, '0', STR_PAD_LEFT);
+    $year = $request->input('year');
+    $date = date('d F Y', strtotime("$year-$month-01 +1 month -1 day"));
+   
+    $constantFactor = 0.0481927;
+
+    $leaves = Leave::where('year', $year)
+        ->where('month', $monthsreq)
+        ->get()
+        ->map(function ($item) use ($constantFactor) {
+            $item->total = ($item->vl_balance ?? 0) + ($item->sl_balance ?? 0);
+            $item->constant_factor = $constantFactor;
+            $item->grand_total = round($item->total * $constantFactor * $item->monthly_salary, 2);
+            return $item;
+        });
+      
+
+    $total_leave_benefit = $leaves->sum('grand_total');
+
+    $previous_balance = Leave::where('year', $year)
+        ->where('month', '<', $monthsreq)
+        ->sum('total_benifits');
+    
+    $current_month_payable = $total_leave_benefit - $previous_balance;
+    
+  
+    return view('adminpage.terminal', compact(
+        'leaves', 'date', 'total_leave_benefit', 'previous_balance', 'current_month_payable','monthsreq','year',
+    ));
+}
+
+    public function exportWithTemplate($month, $year)
+{
+    $monthreq = $month;
+
+    $filePath = public_path('template/terminal_template.xlsx');
+    $spreadsheet = IOFactory::load($filePath);
+    $sheet = $spreadsheet->getActiveSheet();
+
+    $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+    $dateFormatted = date('d F Y', strtotime("$year-$month-01 +1 month -1 day"));
+
+    // Inject header date
+    $sheet->setCellValue('A12', 'as of ' . $dateFormatted);
+
+     $constantFactor = 0.0481927;
+    $leaves = Leave::where('year', $year)
+        ->where('month', $monthreq)
+        ->get()
+        ->map(function ($item) use ($constantFactor) {
+            $item->total = ($item->vl_balance ?? 0) + ($item->sl_balance ?? 0);
+            $item->constant_factor = $constantFactor;
+            $item->grand_total = round($item->total * $constantFactor * $item->monthly_salary, 2);
+            return $item;
+        });
+    $total_leave_benefit = $leaves->sum('grand_total');
+   
+    $borderStyle = [
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['argb' => Color::COLOR_BLACK],
+        ],
+        ],
+        ];
+
+        $borderStyle_1 = [
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_RIGHT,  
+            ],
+        ];
+  $startRow = 17;
+
+// Loop to insert all leave rows
+foreach ($leaves as $index => $item) {
+    $row = $startRow + $index;
+
+    $sheet->insertNewRowBefore($row);
+    $sheet->setCellValue("A$row", $index + 1);          
+    $sheet->setCellValue("B$row", ucfirst($item->lname).', '.ucfirst($item->fname).' '.ucfirst($item->fname));
+    $sheet->setCellValue("C$row", $item->monthly_salary); 
+    $sheet->setCellValue("D$row", $item->vl_balance);    
+    $sheet->setCellValue("E$row", $item->sl_balance);    
+    $sheet->setCellValue("F$row", $item->total_leave_earned);        
+
+    $grand_total = $item->total_leave_earned * $constantFactor * $item->monthly_salary;
+    $sheet->setCellValue("G$row", $constantFactor);
+    $sheet->setCellValue("H$row", $grand_total);  
+
+    $sheet->getStyle("A$row:H$row")->applyFromArray($borderStyle);
+    $sheet->getStyle("C$row")->applyFromArray($borderStyle_1);
+    $sheet->getStyle("H$row")->applyFromArray($borderStyle_1);
+
+    // Format currency
+    if ($index === 0) {
+        $sheet->getStyle("C$row")->getNumberFormat()->setFormatCode('"Php   "#,##0.00');
+        $sheet->getStyle("H$row")->getNumberFormat()->setFormatCode('"Php   "#,##0.00');
+    } else {
+        $sheet->getStyle("C$row")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("H$row")->getNumberFormat()->setFormatCode('#,##0.00');
     }
+}
+
+// ✅ Now calculate where to place totals (AFTER loop)
+    $insertedCount = count($leaves);
+    $endRow = $startRow + $insertedCount;
+
+    // Compute balances
+    $previous_balance = Leave::where('year', $year)
+        ->where('month', '<', $monthreq)
+        ->sum('total_benifits');
+
+    $current_month_payable = $total_leave_benefit - $previous_balance;
+
+    // Place total values after the last data row
+    $sheet->setCellValue("H" . $endRow, $total_leave_benefit);
+    $sheet->setCellValue("H" . ($endRow + 1), $previous_balance);
+    $sheet->setCellValue("H" . ($endRow + 2), $current_month_payable);
+
+    // Export
+    $writer = new Xlsx($spreadsheet);
+    $filename = "terminal_leave_{$year}_{$month}.xlsx";
+
+    return response()->streamDownload(function () use ($writer) {
+        $writer->save('php://output');
+    }, $filename);
+}
+
+
+    
+// public function Admin_Terminal_Leave_Generate(Request $request)
+// {
+//     $request->validate([
+//         'month' => 'required|integer',
+//         'year' => 'required|integer',
+//     ]);
+
+//     $month = $request->month;
+//     $year = $request->year;
+//     $constantFactor = 0.0481927;
+
+//     $monthNumber = str_pad($month, 2, '0', STR_PAD_LEFT); // Ensure two-digit format (e.g., 01, 12)
+//     $date = date('d F Y', strtotime("$year-$monthNumber-01 +1 month -1 day"));
+
+//     $employees = Employee_Account::all();
+//     $results = [];
+
+//     foreach ($employees as $employee) {
+//         $leave = Leave::where('employee_id', $employee->id)
+//                       ->where('month', $month)
+//                       ->where('year', $year)
+//                       ->first();
+
+//         if ($leave) {
+//             $vl = $leave->vl_balance ?? 0;
+//             $sl = $leave->sl_balance ?? 0;
+//             $totalLeave = $vl + $sl;
+//             $salary = $employee->salary ?? 0;
+           
+//             $terminalLeaveTotal = $salary * $totalLeave * $constantFactor;
+           
+//             // Save to terminal_leave table
+//             TerminalLeaveRecord::updateOrCreate(
+//                 [
+//                     'employee_id' => $employee->id,
+//                     'month' => $month,
+//                     'year' => $year,
+//                 ],
+//                 [
+//                     'vl' => $vl,
+//                     'sl' => $sl,
+//                     'total' => $totalLeave,
+//                     'constant_factor' => $constantFactor,
+//                     'grand_total' => $terminalLeaveTotal,
+//                     'salary' => $salary,
+//                 ]
+//             );
+
+//             $results[] = (object)[
+//                 'name' => $employee->name,
+//                 'salary' => $salary,
+//                 'vl' => $vl,
+//                 'sl' => $sl,
+//                 'total' => $totalLeave,
+//                 'constant_factor' => $constantFactor,
+//                 'grand_total' => $terminalLeaveTotal,
+//             ];
+//         }
+//     }
+//     // Return to view
+//     return view('adminpage.terminal', [
+//         'leave' => $results, 'date' => $date
+//     ]);
+// }
     
 
 
@@ -1030,4 +1402,6 @@ function Rate(){
     $work = Daily_earned::orderBy('days', 'asc')->get();
     return view('adminpage.earnedhour', compact('work'));
     }
+
+
 }

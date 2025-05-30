@@ -204,7 +204,7 @@ Swal.fire({
         <label for="date">Date</label>
         <input type="text" name="date" placeholder="Date/Days e.g. 1-10 or 1,10" />
         <label for="monthly_salary">Monthly Salary</label>
-        <input type="text" name="monthly_salary" id="monthly_salary" placeholder="123.."/>
+        <input type="number" name="monthly_salary" id="monthly_salary" placeholder="123.."/>
 
         
       </div>

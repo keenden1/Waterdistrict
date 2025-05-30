@@ -57,6 +57,10 @@ return new class extends Migration
             $table->integer('hour_Under')->nullable();
             $table->integer('minutes_Under')->nullable();
             $table->integer('times_Under')->nullable();
+
+            
+            $table->decimal('constant_factor', 5, 3)->nullable();
+            $table->decimal('total_benifits', 20, 2)->nullable(); 
             $table->timestamps();
   
         });

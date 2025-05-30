@@ -7,12 +7,15 @@
 
 <div class="search_div" style="display: flex; align-items:center; justify-content:space-between; margin: 0 10px; ">
     <span style="display: flex; justify-content:start;"> <h2>&nbsp;Benefits Payable</h2><h2>&nbsp;as of {{$date}}</h2></span>
-    <a href="{{ route('xl') }}"><button class="btn2">Print Report</button></a>
+    <a href="#" id="print-report-link">
+      <button class="btn2" type="button">Print Report</button>
+    </a>
+
     </div>
 </div>
 
 <div style="max-height: 620px; overflow-y: auto; border: 1px solid #ccc; margin-top:5px;margin-bottom:10px; border-radius:5px;">
-<table id="leaveTable" border="1" style="border-collapse: collapse; width: 100%; text-align: center; border-radius:5px;"">
+<table id="leaveTable" border="1" style="border-collapse: collapse; width: 100%; text-align: center; border-radius:5px;">
   <thead>
     <tr>
       <th rowspan="3" colspan="2" style="text-align: center; vertical-align: middle;">EMPLOYEE NAME</th>
@@ -28,33 +31,41 @@
     </tr>
   </thead>
   <tbody>
-  @foreach($leave as $index => $item)
+    @forelse($leaves as $index => $item)
     <tr>
-      <td style="text-align: center; vertical-align: middle;">1</td>
-      <td>{{ $item->name ?? 'N/A' }}</td>
-      <td style="white-space: pre;">Php    {{ $item->salary ?? 'N/A' }}</td>
-      <td style="text-align: center;">{{ $item->vl ?? 'N/A' }}</td>
-      <td style="text-align: center;">{{ $item->sl ?? 'N/A' }}</td>
-      <td style="text-align: center;">{{ $item->total ?? 'N/A' }}</td>
-      <td style="text-align: center;">{{ $item->constant_factor?? 'N/A' }}</td>
-      <td style="white-space: pre;">Php    {{ $item->grand_total ?? 'N/A' }}</td>
+        <td style="text-align: center;">{{ $index + 1 }}</td>
+        <td>{{ ucwords($item->lname . ', ' . $item->fname . ' ' . $item->mname) }}</td>
+        <td>Php {{ number_format($item->monthly_salary, 2) }}</td>
+        <td style="text-align: center;">{{ $item->vl_balance ?? 0 }}</td>
+        <td style="text-align: center;">{{ $item->sl_balance ?? 0 }}</td>
+        <td style="text-align: center;">{{ $item->total ?? 0 }}</td>
+        <td style="text-align: center;">{{ $item->constant_factor }}</td>
+        <td>Php {{ number_format($item->grand_total, 2) }}</td>
     </tr>
-    @endforeach
-  </tbody>
-  <tfoot>
+    @empty
     <tr>
-      <td colspan="7" style="text-align: right; border-bottom:2px solid white;"><strong>TOTAL LEAVE BENEFIT PAYABLE TO DATE</strong></td>
-      <td>0</td>
+        <td colspan="8" style="text-align: center;">No data available for the selected month and year.</td>
+    </tr>
+    @endforelse
+</tbody>
+
+@if($leaves->count() > 0)
+<tfoot>
+    <tr>
+        <td colspan="7" style="text-align: right;"><strong>TOTAL LEAVE BENEFIT PAYABLE TO DATE</strong></td>
+        <td>Php {{ number_format($total_leave_benefit, 2) }}</td>
     </tr>
     <tr>
-      <td colspan="7" style="text-align: right;  border-bottom:2px solid white;"><strong>BALANCE PREVIOUS MONTH</strong></td>
-      <td>0</td>
+        <td colspan="7" style="text-align: right;"><strong>BALANCE PREVIOUS MONTH</strong></td>
+        <td>Php {{ number_format($previous_balance, 2) }}</td>
     </tr>
     <tr>
-      <td colspan="7" style="text-align: right;  border-bottom:2px solid white;"><strong>TOTAL PAYABLE CURRENT MONTH</strong></td>
-      <td>0</td>
+        <td colspan="7" style="text-align: right;"><strong>TOTAL PAYABLE CURRENT MONTH</strong></td>
+        <td>Php {{ number_format($current_month_payable, 2) }}</td>
     </tr>
-  </tfoot>
+</tfoot>
+@endif
+
 </table>
 
 
@@ -350,6 +361,22 @@ table {
   });
 }
 
+</script>
+<script>
+  document.getElementById('print-report-link').addEventListener('click', function(e) {
+    e.preventDefault();
+
+    const month =  '{{ $monthsreq }}'
+    const year = '{{ $year }}';
+
+    if (!month || !year) {
+      alert('Please select both month and year.');
+      return;
+    }
+
+    const url = `/export-terminal-template/${month}/${year}`;
+    window.open(url, '_blank'); // open in new tab
+  });
 </script>
 
     

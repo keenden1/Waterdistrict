@@ -21,6 +21,9 @@
         <input type="text" id="searchInput" placeholder="Search..." >
     </span>
 </div>
+<div>
+  
+</div>
 <div class="scroll" style="max-height: 520px; overflow-y: auto; border: 1px solid #ccc; margin-top:20px; border-radius:5px;">
     <table id="leaveTable">
   <thead>
@@ -513,6 +516,27 @@ table {
             background-color:rgb(1, 122, 129);
             transform: scale(0.98);
             }
+            .btn7 {
+    background-color: #89CFF0; /* Soft Blue */
+    color: white;
+    border: none;
+    padding: 10px 5px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    height: 50px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn7:hover {
+    background-color: #72B4E0; /* Slightly darker blue on hover */
+  }
+
+  .btn7:active {
+    background-color: #5A9BCF; /* Even darker blue on click */
+    transform: scale(0.98);
+  }
 </style>
 <script>
 function confirmAction(applicationId, popoverId) {

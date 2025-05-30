@@ -19,6 +19,7 @@ class Leave extends Model
         'date',
         'month',
         'year',
+        'monthly_salary',
 
         'vl',
         'fl',
@@ -46,6 +47,8 @@ class Leave extends Model
         'hour_Under',
         'minutes_Under',
         'times_Under',
-        'total_conversion'
+        'total_conversion',
+        'constant_factor',
+        'total_benifits',
     ];
 }

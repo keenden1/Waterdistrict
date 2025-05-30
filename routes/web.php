@@ -54,10 +54,13 @@ Route::post('/Admin-Leave-Credit-Card-Generate', [Admin::class,'Admin_Leave_Cred
 
 Route::get('/Admin-Summary', [Admin::class,'Admin_Summary'])->name('Admin-Summary-page');
 Route::post('/Admin-Summary-Generate', [Admin::class,'Admin_Summary_Generate'])->name('Admin-Summary-Generate-page');
+Route::get('/export-late-template/{month}/{year}', [Admin::class, 'export_late_WithTemplate'])->name('export.late.template');
+
 
 
 Route::get('/Admin-Terminal-Leave', [Admin::class,'Admin_Terminal_Leave'])->name('Admin-Terminal-Leave-Form-page');
 Route::post('/Admin-Terminal-Leave-Generate', [Admin::class,'Admin_Terminal_Leave_Generate'])->name('Admin-Terminal-Leave-Generate-page');
+Route::get('/export-terminal-template/{month}/{year}', [Admin::class, 'exportWithTemplate'])->name('terminal.leave.export.template');
 
 
 Route::get('/Admin-Control-Panel', [Admin::class,'Admin_Control_Panel'])->name('Admin-Control-Panel-page');

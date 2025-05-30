@@ -7,7 +7,9 @@
 
 <div class="search_div" style="display: flex; align-items:center; justify-content:space-between; margin: 0 10px; ">
     <span style="display: flex; justify-content:start;"> <h2>&nbsp;Tardiness and Undertime</h2><h2>&nbsp;as of {{$lastDay}}</h2></span>
-    <button class="btn2">Generate Report</button>
+     <a href="#" id="print-report-link">
+      <button class="btn2" type="button">Print Report</button>
+    </a>
     </div>
 </div>
 
@@ -384,5 +386,20 @@ table {
 
 </script>
 
-    
+    <script>
+  document.getElementById('print-report-link').addEventListener('click', function(e) {
+    e.preventDefault();
+
+    const month =  '{{ $monthsreq }}'
+    const year = '{{ $year }}';
+
+    if (!month || !year) {
+      alert('Please select both month and year.');
+      return;
+    }
+
+    const url = `/export-late-template/${month}/${year}`;
+    window.open(url, '_blank'); // open in new tab
+  });
+</script>
 @endsection
