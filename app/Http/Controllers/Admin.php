@@ -32,6 +32,8 @@ use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
 
 class Admin extends Controller
 {
@@ -415,128 +417,136 @@ public function registerUser(Request $request)
         return response()->download($newFilePath, $excelname)->deleteFileAfterSend(true);
         }
    
-
-    public function exportUsers($id)
+ private function embedInUnderscores($word, $totalLength = 20)
     {
-        $application = Application_leave::find($id);
-        $leave1 = ($application->a_availed == 'Vacation Leave') ? '✔' : '';
-        $leave2 = ($application->a_availed == 'Mandatory/Forced Leave') ?  '✔' : '';
-        $leave3 = ($application->a_availed == 'Sick Leave') ? '✔' : '';
-        $leave4 = ($application->a_availed == 'Maternity Leave') ? '✔' : '';
-        $leave5 = ($application->a_availed == 'Paternity Leave') ? '✔' : '';
-        $leave6 = ($application->a_availed == 'Special Privilage Leave') ? '✔' : '';
-        $leave7 = ($application->a_availed == 'Solo Parent Leave') ? '✔' : '';
-        $leave8 = ($application->a_availed == 'Study Leave') ? '✔' : '';
-        $leave9 = ($application->a_availed == '10-Day VAWC Leave') ? '✔' : '';
-        $leave10 = ($application->a_availed == 'Rehabilitation Leave') ? '✔' : '';
-        $leave11 = ($application->a_availed == 'Special Leave Benifits for Woman') ? '✔' : '';
-        $leave12 = ($application->a_availed == 'Special Emergency') ? '✔' : '';
-        $leave13 = ($application->a_availed == 'Adoption Leave') ? '✔' : '';
-        $others =  ($application->a_availed == 'Others:') ? $application->a_availed_others : '';
-        
-        $ph = ($application->b_details == 'Within Philippines') ? '✔' : '';
-        $ph_details = ($application->b_details == 'Within Philippines') ? $application->b_details_specify : '';
-
-        $us = ($application->b_details == 'Abroad') ? '✔' : '';
-        $us_details = ($application->b_details == 'Abroad') ? $application->b_details_specify : '';
-
-        $hospital = ($application->b_details == ' In Hospital(Specify Illness)') ? '✔' : '';
-        $hospital_details = ($application->b_details == 'In Hospital(Specify Illness)') ? $application->b_details_specify : '';
-       
-        $outpatient = ($application->b_details == 'Out Patient') ? '✔' : '';
-        $outpatient_details = ($application->b_details == 'Out Patient') ? $application->b_details_specify : '';
-       
-
-        $woman_details = ($application->b_details == 'Special Benifits for Women(Specify Illness)') ? $application->b_details_specify : '';
-        
-        $degree = ($application->b_details == 'Completion of Masters Degree') ? '✔' : '';
-        $bar = ($application->b_details == 'BAR/BOARD Examination Review') ? '✔' : '';
-
-        $monetization = ($application->b_details == 'Monetization of Leave Credits') ? '✔' : '';
-        $terminal = ($application->b_details == 'Terminal Leave') ? '✔' : '';
-        
-        $not = ($application->d_commutation == 'Not Requested') ? '✔' : '';
-        $requested = ($application->d_commutation == 'Requested') ? '✔' : '';
-       
-        
-        
-        $templatePath = public_path('template/example.xlsx');
-        $newFilePath = public_path('template/sample.xlsx');
-
-        $account = Employee_Account::where('email', $application->email)->first();
-        $fullname = ucfirst(strtolower($account->lname)) . ', ' . ucfirst(strtolower($account->fname));
-
-        if (!empty($account->mname)) {
-            $fullname .= ' ' . strtoupper(substr($account->mname, 0, 1)) . '.';
-        }
-        
-
-        copy($templatePath, $newFilePath);
-    
-        // Step 2: Open the Excel file (as a zip)
-        $zip = new ZipArchive;
-        if ($zip->open($newFilePath) === true) {
-    
-            // Step 3: Read and modify sharedStrings.xml
-            $sharedStrings = $zip->getFromName('xl/sharedStrings.xml');
-    
-            if ($sharedStrings !== false) {
-                $sharedStrings = str_replace('{{OFFICER_DEPARTMENT}}', $application->officer_department, $sharedStrings);
-                $sharedStrings = str_replace('{{FULLNAME}}', $fullname, $sharedStrings);
-                $sharedStrings = str_replace('{{EMAIL}}',  $application->email, $sharedStrings);
-                $sharedStrings = str_replace('{{SALARY}}',  'SG'.$application-> salary_grade.'-'. $application->step_grade , $sharedStrings);
-                $sharedStrings = str_replace('{{POSITION}}',  $application->position , $sharedStrings);
-                $sharedStrings = str_replace('{{DATE_FILING}}',  $application->date_filing , $sharedStrings);
-                $sharedStrings = str_replace('{{leave1}}', $leave1, $sharedStrings);
-                $sharedStrings = str_replace('{{leave2}}', $leave2, $sharedStrings);
-                $sharedStrings = str_replace('{{leave3}}', $leave3, $sharedStrings);
-                $sharedStrings = str_replace('{{leave4}}', $leave4, $sharedStrings);
-                $sharedStrings = str_replace('{{leave5}}', $leave5, $sharedStrings);
-                $sharedStrings = str_replace('{{leave6}}', $leave6, $sharedStrings);
-                $sharedStrings = str_replace('{{leave7}}', $leave7, $sharedStrings);
-                $sharedStrings = str_replace('{{leave8}}', $leave8, $sharedStrings);
-                $sharedStrings = str_replace('{{leave9}}', $leave9, $sharedStrings);
-                $sharedStrings = str_replace('{{leave10}}', $leave10, $sharedStrings);
-                $sharedStrings = str_replace('{{leave11}}', $leave11, $sharedStrings);
-                $sharedStrings = str_replace('{{leave12}}', $leave12, $sharedStrings);
-                $sharedStrings = str_replace('{{leave13}}', $leave13, $sharedStrings);
-                $sharedStrings = str_replace('{{OTHERS}}',   $others , $sharedStrings);
-                $sharedStrings = str_replace('{{WORKINGDAYS}}',  $application->c_working_days .' Day/s' , $sharedStrings);
-                $sharedStrings = str_replace('{{INCLUSIVEDAYS}}',  $application->c_inclusive_dates , $sharedStrings);
-
-                $sharedStrings = str_replace('{{PH}}', $ph, $sharedStrings);
-                $sharedStrings = str_replace('{{PH_DETAIL}}',   $ph_details , $sharedStrings);
-                $sharedStrings = str_replace('{{US}}', $us , $sharedStrings);
-                $sharedStrings = str_replace('{{US_DETAIL}}',   $us_details  , $sharedStrings);
-                $sharedStrings = str_replace('{{HOSPITAL}}', $hospital , $sharedStrings);
-                $sharedStrings = str_replace('{{HOSPITAL_DETAIL}}',   $hospital_details  , $sharedStrings);
-                $sharedStrings = str_replace('{{OUTPATIENT}}', $outpatient , $sharedStrings);
-                $sharedStrings = str_replace('{{OUTPATIENT_DETAIL}}',   $outpatient_details  , $sharedStrings);
-          
-                $sharedStrings = str_replace('{{WOMAN_DETAIL}}',   $woman_details  , $sharedStrings);
-                $sharedStrings = str_replace('{{DEGREE}}', $degree , $sharedStrings);
-                $sharedStrings = str_replace('{{BAR}}',   $bar  , $sharedStrings);
-
-                $sharedStrings = str_replace('{{MONETIZATION}}', $monetization , $sharedStrings);
-                $sharedStrings = str_replace('{{TERMINAL}}',   $terminal  , $sharedStrings);
-                $sharedStrings = str_replace('{{NOT}}', $not , $sharedStrings);
-                $sharedStrings = str_replace('{{REQUESTED}}',   $requested  , $sharedStrings);
-                
-                $sharedStrings = str_replace('{{REASON}}',   $application->reason  , $sharedStrings);
-                // Step 4: Save back the modified sharedStrings
-                $zip->addFromString('xl/sharedStrings.xml', $sharedStrings);
-            }
-    
-            // Step 5: Close the zip
-            $zip->close();
-            $excelname = 'Save_' . now()->format('Ymd_His') . '.xlsx';
-            $newFilePaths = public_path('savefile/' . $excelname . '.xlsx');
-           
-            return response()->download($newFilePath, $excelname)->deleteFileAfterSend(true);
-        } else {
-            return response()->json(['error' => 'Failed to open template'], 500);
-        }
+        $wordLength = strlen($word);
+        $remaining = max($totalLength - $wordLength, 0);
+        $left = intdiv($remaining, 2);
+        $right = $remaining - $left;
+        return str_repeat('_', $left) . $word . str_repeat('_', $right);
     }
+
+public function exportUsers($id)
+{
+    $application = Application_leave::find($id);
+    $account = Employee_Account::where('email', $application->email)->first();
+
+    $fullname = ucfirst(strtolower($account->lname)) . ', ' . ucfirst(strtolower($account->fname));
+    if (!empty($account->mname)) {
+        $fullname .= ' ' . strtoupper(substr($account->mname, 0, 1)) . '.';
+    }
+
+    // Load template
+    $templatePath = public_path('template/example.xlsx');
+    $spreadsheet = IOFactory::load($templatePath);
+    $sheet = $spreadsheet->getActiveSheet();
+
+    // Set cell values (adjust cell references to match your template)
+    $sheet->setCellValue('B5', $application->officer_department);
+    $sheet->setCellValue('E5', $fullname);
+
+    $position = $application->position;
+    $salary = 'SG' . $application->salary_grade . '-' . $application->step_grade;
+
+    $formattedPosition = $this->embedInUnderscores($position);
+    $formattedSalary = $this->embedInUnderscores($salary);
+
+    // Combine into one string as a form line
+    $line = "4.   POSITION  $formattedPosition     5.  SALARY  $formattedSalary";
+
+    $sheet->setCellValue('E6', $line);
+    
+    $date_filing = $application->date_filing;
+    $formatteddate_filing = $this->embedInUnderscores($date_filing);
+    $line1 = "3.   DATE OF FILING  $formatteddate_filing";
+
+    $sheet->setCellValue('A6', $line1);
+    $sheet->setCellValue('I62', $application->reason);
+
+    // Checkboxes (✔ for selected leave type)
+    $leaveCells = [
+        'Vacation Leave' => 'B11',
+        'Mandatory/Forced Leave' => 'B13',
+        'Sick Leave' => 'B15',
+        'Maternity Leave' => 'B17',
+        'Paternity Leave' => 'B19',
+        'Special Privilage Leave' => 'B21',
+        'Solo Parent Leave' => 'B23',
+        'Study Leave' => 'B25',
+        '10-Day VAWC Leave' => 'B27',
+        'Rehabilitation Leave' => 'B29',
+        'Special Leave Benifits for Woman' => 'B31',
+        'Special Emergency' => 'B33',
+        'Adoption Leave' => 'B35',
+    ];
+
+    foreach ($leaveCells as $type => $cell) {
+        $sheet->setCellValue($cell, $application->a_availed == $type ? '✔' : '');
+    }
+
+
+    // Others
+    if ($application->a_availed == 'Others:') {
+        $sheet->setCellValue('B41', $application->a_availed_others); // Adjust cell ref
+    }
+
+    // Commutation Requested
+    $sheet->setCellValue('H45', $application->d_commutation == 'Requested' ? '✔' : '');
+    $sheet->setCellValue('H47', $application->d_commutation == 'Not Requested' ? '✔' : '');
+
+    // Insert signature image if available
+  if ($account->e_signature && file_exists(public_path($account->e_signature))) {
+    $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+    $drawing->setName('Signature');
+    $drawing->setDescription('Employee Signature');
+    $drawing->setPath(public_path($account->e_signature));
+    $drawing->setHeight(80);
+    $drawing->setCoordinates('C59');
+
+    // Calculate total width of merged columns (C to E)
+    $colWidths = 0;
+    foreach (['C', 'D', 'E'] as $col) {
+        $colWidths += $sheet->getColumnDimension($col)->getWidth();
+    }
+
+    // Convert Excel column width to pixels (approx 7.5 px per unit)
+    $mergedWidthPx = $colWidths * 7.5;
+    $imageWidthPx = $drawing->getWidth();
+
+    // Calculate horizontal offset to center image with 4px margin left/right
+    $offsetX = (($mergedWidthPx - 8) - $imageWidthPx) / 2 + 4; // subtract 8px total margin, add left 4px margin
+    if ($offsetX < 0) $offsetX = 0;
+
+    // Get row height in points (default ~15 pts)
+    $rowHeightPts = $sheet->getRowDimension(59)->getRowHeight();
+    if (!$rowHeightPts) {
+        $rowHeightPts = 15; // default row height
+    }
+    // Convert points to pixels (~1 pt = 1.33 px)
+    $rowHeightPx = $rowHeightPts * 1.33;
+
+    $imageHeightPx = $drawing->getHeight();
+    // Calculate vertical offset to center image with 4px margin top/bottom
+    $offsetY = (($rowHeightPx - 8) - $imageHeightPx) / 2 + 4; // subtract 8px total margin, add top 4px margin
+    if ($offsetY < 0) $offsetY = 0;
+
+    $drawing->setOffsetX($offsetX);
+    $drawing->setOffsetY($offsetY);
+
+    $drawing->setWorksheet($sheet);
+}
+
+
+    // Save and download
+    $excelname = 'Save_' . now()->format('Ymd_His') . '.xlsx';
+    $savePath = public_path('savefile/' . $excelname);
+
+    $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+    $writer->save($savePath);
+
+    return response()->download($savePath)->deleteFileAfterSend(true);
+}
+
     
 
     public function updateStatusapprove(Request $request, $id)
