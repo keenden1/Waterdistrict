@@ -9,7 +9,9 @@
     <span style="display: flex; justify-content: start;">
     <h2><span id="date-time"></span></h2>
     </span>
-    <a href="{{ route('xl') }}"><button class="btn2" id="btn2">Generate Report</button></a>
+    <a href="#" id="print-report-link">
+      <button class="btn2" type="button">Print Report</button>
+    </a>
     </div>
 </div>
 <div class="table-name" style="justify-content:space-between">
@@ -522,5 +524,22 @@ table {
   setInterval(updateDateTime, 1000);
 </script>
 
-    
+    </script>
+
+    <script>
+  document.getElementById('print-report-link').addEventListener('click', function(e) {
+    e.preventDefault();
+
+    const month =  '{{ $id }}'
+    const year = '{{ $year }}';
+
+    if (!month || !year) {
+      alert('Please select both month and year.');
+      return;
+    }
+
+    const url = `/print_leave_credit_card/${month}/${year}`;
+    window.open(url, '_blank'); // open in new tab
+  });
+</script>
 @endsection

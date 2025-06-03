@@ -53,7 +53,6 @@
         <button type="submit" id="admin-login-button">Login</button>
     </form>
    @if ($count == 0)
-    <p>{{ $count }}</p>
     <p class="link-text">
         Doesn't have an account?
         <a href="{{ url('/Admin-Register-Page') }}">Register</a>

@@ -47,7 +47,9 @@ class Admin extends Controller
 public function Input($id) {
      
     $employee = Leave::where('employee_id', $id)
-       ->orderBy('created_at', 'desc')->get();
+       ->orderBy('year', 'desc')
+       ->orderByRaw('CAST(month AS UNSIGNED) ASC')
+       ->get();
 
     $Account = Employee_Account::where('employee_id', $id)        ->first();
 
@@ -56,17 +58,6 @@ public function Input($id) {
     $name = ucfirst($Account->fname) . ' ' . ucfirst($Account->lname);
 
     return view('adminpage.admin_data', compact('employee','name','employee_id_new'));
-}
-
-public function deleteWithPassword(Request $request)
-{
-    $request->validate([
-        'item_id' => 'required|exists:leaves,id',
-    ]);
-
-    Leave::findOrFail($request->item_id)->delete();
-
-    return response()->json(['success' => true]);
 }
 
 public function leave_store(Request $request)
@@ -314,98 +305,115 @@ public function registerUser(Request $request)
 
 
 
-    public function xl()
+    public function print_leave_credit_card($id, $year)
     {
-        $employees = [
-            [
-                'name' => 'Alice Smith',
-                'salary' => 30000,
-                'vl' => 2,
-                'sl' => 1,
-            ],
-            [
-                'name' => 'John Doe',
-                'salary' => 35000,
-                'vl' => 3,
-                'sl' => 2,
-            ],
-        ];
+
+    $items = Leave::where('employee_id', $id)
+              ->where('year', $year)
+              ->get();
+ 
     
-        // Monthly values for column K
-        $monthsData = [
-            'jan' => 123123,
-            'feb' => 123123,
-            'mar' => 123123,
-            'apr' => 123123,
-            'may' => 123123,
-            'june' => 123123,
-            'july' => 123123,
-            'aug' => 123123,
-            'sep' => 123123,
-            'oct' => 123123,
-            'nov' => 123123,
-            'dec' => 123123,
-        ];
-        $lastmonthdec = 123123;
+    $templatePath = public_path('template/leavecreditcard.xlsx');
+    $spreadsheet = IOFactory::load($templatePath);
+    $sheet = $spreadsheet->getActiveSheet();
+    
+
+
+    $name = Employee_Account::where('employee_id', $id)->first();
+    $fullname = "{$name->lname}, {$name->fname} {$name->mname}";
+
+    $sheet->setCellValue("B12", $fullname);
+    $sheet->setCellValue("A18", $year);
+
+
+    $previousYear = $year - 1;
+
+    $decemberLeave = Leave::where('employee_id', $id)
+        ->where('year', $previousYear)
+        ->where('month', 12)
+        ->first();
+
+    $previousDecemberVlBalance = $decemberLeave ? $decemberLeave->vl_balance : 0;
+
+    $previousDecemberSlBalance = $decemberLeave ? $decemberLeave->sl_balance : 0;
+    // Then set it into K17
+    $sheet->setCellValue('K17', $previousDecemberVlBalance);
+    $sheet->setCellValue('O17', $previousDecemberSlBalance);
+
+
+
+    $startRow = 19;
+    $previousMonth = null;
+    foreach ($items as $i => $item) {
+    $row = $startRow + $i;
+
+    // After the first item, insert a new row before writing
+    if ($i > 0) {
+        $sheet->insertNewRowBefore($row);
+    }
+
+    $currentMonth  = \DateTime::createFromFormat('!m', $item['month'])->format('F');
+    $sheet->mergeCells("A{$row}:B{$row}");
+      if ($currentMonth === $previousMonth) {
+        // Duplicate month, so set blank for merged cell A:B
+        $sheet->setCellValue("A{$row}", '');
+    } else {
+        // New month, set month name
+        $sheet->setCellValue("A{$row}", $currentMonth);
+        $previousMonth = $currentMonth;
+    }
+    $sheet->setCellValue("c$row", $item['date']);
+    $sheet->setCellValue("D$row", $item['vl']);
+    $sheet->setCellValue("E$row", $item['fl']);
+    $sheet->setCellValue("F$row", $item['sl']);
+    $sheet->setCellValue("G$row", $item['spl']);
+    $sheet->setCellValue("H$row", $item['other']);
+
+    $sheet->setCellValue("I$row", $item['vl_earned']);
+    $sheet->setCellValue("J$row", $item['vl_absences_withpay']);
+
+    $sheet->setCellValue("K$row", $item['vl_balance']);
+    $sheet->setCellValue("L$row", $item['vl_absences_withoutpay']);
+
+    $sheet->setCellValue("M$row", $item['sl_earned']);
+    $sheet->setCellValue("N$row", $item['sl_absences_withpay']);
+
+    $sheet->setCellValue("O$row", $item['sl_balance']);
+    $sheet->setCellValue("P$row", $item['sl_absences_withoutpay']);
+
+    $sheet->setCellValue("Q$row", $item['total_leave_earned']);
+}
+    $lastRow = $row + 1; 
+
+    $totalVL = $items->sum('vl');
+    $totalFL = $items->sum('fl');
+    $totalSL = $items->sum('sl');
+    $totalSPL = $items->sum('spl');
+    $totalOTHER = $items->sum('other');
+
+    $totalvl_earned = $items->sum('vl_earned');
+    $totalsl_earned= $items->sum('sl_earned');
+
+    $lastItem = $items->sortBy('month')->last();
+    $totalvl_balance = $lastItem ? $lastItem->vl_balance : 0;
+    $totalsl_balance = $lastItem ? $lastItem->sl_balance : 0;
+    $total_leave_earned = $lastItem ? $lastItem->total_leave_earned : 0;
 
     
-        $templatePath = public_path('template/leavecreditcard.xlsx');
-        $spreadsheet = IOFactory::load($templatePath);
-        $sheet = $spreadsheet->getActiveSheet();
-    
-        $startRow = 17;
-        $constantFactor = 0.0481927;
-        $totalBenefit = 0;
-    
-        foreach ($employees as $i => $employee) {
-            $row = $startRow + $i;
-    
-            $sheet->setCellValue("A$row", $i + 1);
-            $sheet->setCellValue("B$row", $employee['name']);
-            $sheet->setCellValue("C$row", $employee['salary']);
-            $sheet->setCellValue("D$row", $employee['vl']);
-            $sheet->setCellValue("E$row", $employee['sl']);
-    
-            $totalLeave = $employee['vl'] + $employee['sl'];
-            $sheet->setCellValue("F$row", $totalLeave);
-            $sheet->setCellValue("G$row", $constantFactor);
-    
-            $benefit = $employee['salary'] * $totalLeave * $constantFactor;
-            $totalBenefit += $benefit;
-    
-            $sheet->setCellValue("H$row",  number_format($benefit, 2));
-        }
 
-         $sheet->setCellValue("K16", $lastmonthdec);
-        // Set K17-K28 with monthly data
-        $monthRows = [
-            'jan' => 17, 'feb' => 18, 'mar' => 19, 'apr' => 20,
-            'may' => 21, 'june' => 22, 'july' => 23, 'aug' => 24,
-            'sep' => 25, 'oct' => 26, 'nov' => 27, 'dec' => 28,
-        ];
-    
-        foreach ($monthsData as $key => $value) {
-            $row = $monthRows[$key];
-            $sheet->setCellValue("K$row", $value);
-        }
-    
-        // -- TOTAL LEAVE BENEFIT PAYABLE TO DATE --
-        $sheet->setCellValue("H24", number_format($totalBenefit, 2));
-    
-        // -- CURRENT MONTH: APRIL --
-        $currentMonth = 'apr';
-        $currentMonthRow = $monthRows[$currentMonth] ?? 20;
-    
-        // -- NEXT MONTH (MAY) for Balance Previous --
-        $nextMonthKey = array_search($currentMonth, array_keys($monthRows)) + 1;
-        $nextMonthRow = $nextMonthKey ? array_values($monthRows)[$nextMonthKey] : 21;
-    
-        $balancePreviousMonth = $sheet->getCell("K$nextMonthRow")->getValue();
-        $sheet->setCellValue("H25", number_format($balancePreviousMonth, 2));
-    
-        // -- TOTAL PAYABLE CURRENT MONTH (H26) --
-        $totalPayableCurrentMonth = $totalBenefit - $balancePreviousMonth;
-        $sheet->setCellValue("H26", number_format($totalPayableCurrentMonth, 2));
+    $sheet->setCellValue("D{$lastRow}", $totalVL);
+    $sheet->setCellValue("E{$lastRow}", $totalFL);
+    $sheet->setCellValue("F{$lastRow}", $totalSL);
+    $sheet->setCellValue("G{$lastRow}", $totalSPL);
+    $sheet->setCellValue("H{$lastRow}", $totalOTHER);
+
+    $sheet->setCellValue("I{$lastRow}", $totalvl_earned);
+    $sheet->setCellValue("K{$lastRow}", $totalvl_balance);
+
+    $sheet->setCellValue("M{$lastRow}", $totalsl_earned);
+    $sheet->setCellValue("O{$lastRow}", $totalsl_balance);
+
+    $sheet->setCellValue("Q{$lastRow}", $total_leave_earned);
     
         // Save to temp file
         $excelname = 'Leave_Benefits_' . now()->format('Ymd_His') . '.xlsx';
@@ -425,6 +433,9 @@ public function registerUser(Request $request)
         $right = $remaining - $left;
         return str_repeat('_', $left) . $word . str_repeat('_', $right);
     }
+
+
+
 
 public function exportUsers($id)
 {
@@ -487,7 +498,7 @@ public function exportUsers($id)
 
     // Others
     if ($application->a_availed == 'Others:') {
-        $sheet->setCellValue('B41', $application->a_availed_others); // Adjust cell ref
+        $sheet->setCellValue('B41', $application->a_availed_others); 
     }
 
     // Commutation Requested
@@ -594,7 +605,35 @@ public function exportUsers($id)
     //             if ($user && $user->role === 'admin') {
     //                    return redirect('/Admin-Dashboard');
     //             } 
-   function Admin_Login(Request $request)
+
+
+public function deleteWithPassword(Request $request)
+{
+    $request->validate([
+        'item_id' => 'required|exists:leaves,id',
+        'password' => 'required|string',
+    ]);
+
+    // Get email from session (set in Admin_Login)
+    $email = Session::get('user_email');
+
+    if (!$email) {
+        return response()->json(['message' => 'User session not found. Please log in again. '], 401);
+    }
+
+    $user = Employee_Account::where('email', $email)->first();
+
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response()->json(['message' => 'Invalid password'], 401);
+    }
+
+    Leave::findOrFail($request->item_id)->delete();
+
+    return response()->json(['success' => true]);
+}
+
+
+  public function Admin_Login(Request $request)
 {
     $request->validate([
         'email' => 'required|email',
@@ -614,14 +653,15 @@ public function exportUsers($id)
     try {
         $firebaseAuth = app('firebase.auth');
         $signInResult = $firebaseAuth->signInWithEmailAndPassword($request->email, $request->password);
-        
+
         Session::put('user', [
             'email' => $request->email,
-            'idToken' => $signInResult->idToken(),
+            'idToken' => $signInResult->idToken(),  // This is NOT a custom token!
         ]);
         Session::put('user_email', $request->email);
+        Session::put('firebase_token', $signInResult->idToken()); // Store ID token
 
-        // Use already-loaded $user instead of re-querying
+        // Store user info in session
         $fullname = ucfirst($user->fname) . ' ' . ucfirst($user->lname);
         $formname = ucfirst($user->lname) . ', ' . ucfirst($user->fname) . ' ' . ucfirst($user->mname);
 
@@ -691,6 +731,7 @@ public function exportUsers($id)
         $data['position'] = $request->position; 
         $data['account_status'] = "Approved";
         $data['role'] = "admin";
+        $data['password'] = Hash::make($request->password); 
         Employee_Account::create($data);
 
         // $verificationLink = $firebase->getEmailVerificationLink($createdUser->email);
@@ -706,6 +747,27 @@ public function exportUsers($id)
         return redirect()->back()->with('error', $e->getMessage())->withInput();
     }
     }
+    
+public function changePassword(Request $request)
+{
+    $request->validate([
+        'current_password' => 'required',
+        'new_password' => 'required|string|min:6|confirmed',
+    ]);
+
+    $email = Session::get('user_email');
+
+    $user = Employee_Account::where('email', $email)->first();
+
+    if (!Hash::check($request->current_password, $user->password)) {
+        return back()->with('error', 'Current password is incorrect.');
+    }
+
+    $user->password = Hash::make($request->new_password);
+    $user->save();
+
+    return back()->with('success', 'Password changed successfully.');
+}
     
     public function LogoutAdmin()
 {
@@ -760,9 +822,6 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
 
     $email = $request->employee;
     $year = $request->year;
-  
-   
-
 
     $employee = Employee_Account::where('email', $email)->first();
 
@@ -863,8 +922,9 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
             return $leave->total_leave_earned ?? 0;
         });
         
-
-    return view('adminpage.leave_credit_card', compact('employee', 'year', 'leaves', 
+       $id = $employee->employee_id;
+ 
+    return view('adminpage.leave_credit_card', compact('employee', 'year', 'leaves', 'id',
     'vl_oldbalance','sl_oldbalance','total_oldbalance','name',
     'total_sum_VL', 'total_sum_FL','total_sum_SL','total_sum_SPL','total_sum_OTHER',
     'total_sum_VL_EARNED','total_sum_VL_WITHPAY','total_sum_VL_BALANCE','total_sum_VL_WITHOUTPAY',
@@ -1378,7 +1438,7 @@ public function Work_Add(Request $request)
         'minutes' => $request->minutes,
         'equivalent_day' => $request->equivalent_day,
     ]);
-  dd($test);
+ 
     return redirect()->back()->with('success', 'Updated successfully!');
 }
 

@@ -5,24 +5,12 @@
 @section('content')
 <!-- Firebase App (the core Firebase SDK) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-
 <!-- Firebase Auth -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/17119/tablesort.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-fetch('/json/waterdistrict.json')
-  .then(response => response.json())
-  .then(config => {
-    // Initialize Firebase with loaded config
-    firebase.initializeApp(config);
-  })
-  .catch(error => {
-    console.error('Failed to load Firebase config:', error);
-  });
-</script>
+
 <!-- @php
 
 chdir('C:\xampp\htdocs\waterdistrict');  // your Laravel project path
@@ -54,7 +42,7 @@ do {
         <th colspan="5" style="text-align: center; border-right:1px solid black; border-bottom:1px solid black; ">Particular</th>
         <th colspan="4" style="text-align: center; border-right:1px solid black; border-bottom:1px solid black; ">Vacation Leave</th>
         <th colspan="4" style="text-align: center; border-right:1px solid black; border-bottom:1px solid black; ">Sick Leave</th>
-        <th colspan="3" style="text-align: center;  overflow: visible; border-bottom:1px solid black;"><span class="tooltip">Legend:<span class="tooltip-text" style="text-align: left;">
+        <th colspan="3" style="text-align: center;  overflow: visible; border-bottom:1px solid black; position:relative;"><span class="tooltip">Legend:<span class="tooltip-text" style="text-align: left;">
             VL: Vacation Leave <br>
             SL: Sick Leave <br>
             FL: Forced Leave <br>
@@ -63,8 +51,31 @@ do {
             HD: Half Day <br>
             EA: Excused Absences <br>
             MON: Monetization <br>
-        </span></span></th>
+        </span></span>
+      <a href="javascript:void(0);" class="open-password-popup" style="position:absolute; top:5px; right:20px; font-size:24px; text-decoration:none; color:black;">
+        <i class='bx bx-cog'></i>
+      </a>
+      </th>
     </tr>
+    <div id="passwordPopup" class="password-popup-overlay" style="display: none;">
+  <div class="password-popup">
+    <span class="close-popup">&times;</span>
+    <form method="POST" action="{{ route('change-password') }}">
+      @csrf
+      <label>Current Password</label>
+      <input type="password" name="current_password" required>
+
+      <label>New Password</label>
+      <input type="password" name="new_password" required>
+
+      <label>Confirm New Password</label>
+      <input type="password" name="new_password_confirmation" required>
+
+      <button type="submit">Change Password</button>
+    </form>
+  </div>
+</div>
+
     <tr>
       <th>Year</th>
       <th>Month</th>
@@ -637,6 +648,60 @@ table {
             font-size: 14px;
             cursor: pointer;
         }
+
+        .password-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-popup {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  position: relative;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.password-popup label {
+  display: block;
+  margin-top: 10px;
+}
+
+.password-popup input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+}
+
+.password-popup button {
+  margin-top: 15px;
+  padding: 10px;
+  width: 100%;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.password-popup .close-popup {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
 </style>
 <script>
 
@@ -788,64 +853,86 @@ function closePopup(id) {
     }
   });
 
-function confirmDeleteWithPassword(itemId) {
-  Swal.fire({
+
+
+</script>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+  import { getAuth, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+
+  (async () => {
+    // Initialize Firebase app
+    const firebaseConfig = await fetch('/json/waterdistrictweb.json').then(r => r.json());
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+
+    // NOTE: Don't try to sign in with a token here!
+    // Your backend already authenticated user.
+    // You can optionally check if user is logged in, but signInWithCustomToken() is NOT needed.
+
+    // Password confirmed delete function
+   window.confirmDeleteWithPassword = async function(itemId) {
+  const { value: password } = await Swal.fire({
     title: 'Confirm Deletion',
     input: 'password',
     inputLabel: 'Enter your password to delete',
     inputPlaceholder: 'Your password',
     inputAttributes: {
       autocapitalize: 'off',
-      autocorrect: 'off'
+      autocorrect: 'off',
     },
     showCancelButton: true,
-    confirmButtonText: 'Delete',
-    showLoaderOnConfirm: true,
-    preConfirm: async (password) => {
-      if (!password) {
-        Swal.showValidationMessage('Password is required');
-        return;
-      }
-
-      try {
-        const user = firebase.auth().currentUser;
-        const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
-
-        // Re-authenticate the user
-        await user.reauthenticateWithCredential(credential);
-
-        // If successful, send deletion request to backend
-        const response = await fetch('/delete-with-password', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-          },
-          body: JSON.stringify({
-            item_id: itemId
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Server failed to delete item');
-        }
-
-        return true; // Let Swal continue
-      } catch (error) {
-        Swal.showValidationMessage(`Authentication failed: ${error.message}`);
-      }
-    }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      Swal.fire('Deleted!', 'The item has been deleted.', 'success')
-        .then(() => location.reload());
-    }
   });
-}
 
+  if (!password) return;
 
+  try {
+    // Send delete request to backend with password
+    const response = await fetch('/delete-with-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({ item_id: itemId, password }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.message || 'Server failed to delete item');
+    }
+
+    Swal.fire('Deleted!', 'The item has been deleted.', 'success').then(() => location.reload());
+  } catch (error) {
+    Swal.fire('Error', error.message, 'error');
+  }
+};
+
+  })();
 </script>
 
+
+<script>
+  document.querySelector('.open-password-popup').addEventListener('click', function () {
+    document.getElementById('passwordPopup').style.display = 'flex';
+  });
+
+  document.querySelector('.close-popup').addEventListener('click', function () {
+    document.getElementById('passwordPopup').style.display = 'none';
+  });
+
+  // Optional: Close when clicking outside the popup
+  window.addEventListener('click', function (e) {
+    const popup = document.getElementById('passwordPopup');
+    if (e.target === popup) {
+      popup.style.display = 'none';
+    }
+  });
+</script>
 
 
 @endsection

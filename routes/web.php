@@ -44,6 +44,8 @@ Route::post('/Admin-Login', [Admin::class, 'Admin_Login'])->name('Admin-Login');
 Route::post('/Register-Admin', [Admin::class, 'registerAdmin'])->name('Register-Admin-Post');
 Route::get('/Admin-Dashboard', [Admin::class,'Admin_Dashboard'])->name('Admin-Dashboard-page');
 
+Route::post('/change-password', [Admin::class, 'changePassword'])->name('change-password');
+
 Route::get('/Admin-Application-Leave', [Admin::class,'Admin_Application_Leave'])->name('Admin-Application-Leave-page');
 
 Route::get('/Admin-Employee-Account', [Admin::class,'Admin_Employee_Account'])->name('Admin-Employee-Account-page');
@@ -96,7 +98,7 @@ Route::post('/update-status-activate/{id}', [Admin::class, 'updateStatusactivate
 Route::post('/update-status-disable/{id}', [Admin::class, 'updateStatusdisable']);
 
 Route::get('/export-users/{id}', [Admin::class, 'exportUsers'])->name('sus');
-Route::get('/xl', [Admin::class, 'xl'])->name('xl');
+Route::get('/print_leave_credit_card/{id}/{year}', [Admin::class, 'print_leave_credit_card'])->name('print_leave_credit_card');
 
 
 Route::get('/samples', [Admin::class, 'samples'])->name('samples');
