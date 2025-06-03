@@ -75,6 +75,26 @@
           <input type="text" name="salary" id="salary" readonly  style="background-color: rgba(128, 128, 128, 0.2);" placeholder="₱ ∗∗∗∗∗∗">
         </div>
 
+        
+        <div id="emergency_code" class="form-group" style="display: none; align-items: center; gap: 10px; margin-top:10px;">
+          <label style="margin-right: 10px;">Is this an emergency?</label>
+
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="radio" name="is_emergency" id="emergencyYes" value="yes">
+            Yes
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="radio" name="is_emergency" id="emergencyNo" value="no" checked>
+            No
+          </label>
+        </div>
+
+
+
+
+
+
         <div class="form-group">
           <label for="type">Type of leave to be availed of</label>
           <select id="type" name="type" required>
@@ -84,13 +104,13 @@
             <option value="Sick Leave">Sick Leave</option>
             <option value="Maternity Leave">Maternity Leave</option>
             <option value="Paternity Leave">Paternity Leave</option>
-            <option value="Special Privilage Leave">Special Privilage Leave</option>
+            <option value="Special Privilege Leave">Special Privilege Leave</option>
             <option value="Solo Parent Leave">Solo Parent Leave</option>
             <option value="Study Leave">Study Leave</option>
             <option value="10-Day VAWC Leave">10-Day VAWC Leave</option>
             <option value="Rehabilitation Leave">Rehabilitation Leave</option>
             <option value="Special Leave Benifits for Woman">Special Leave Benifits for Woman</option>
-            <option value="Special Emergency">Special Emergency</option>
+            <option value="Special Emergency">Special Emergency(Calamity)</option>
             <option value="Adoption Leave">Adoption Leave</option>
             <option value="Others:">Others</option>
           </select>
@@ -129,12 +149,12 @@
             <option value="Completion of Masters Degree">Completion of Master's Degree</option>
             <option value="BAR/BOARD Examination Review">BAR/BOARD Examination Review</option>
             </optgroup>
-            <optgroup label="Other Purpose">
-            <option value="Monetization of Leave Credits">Monetization of Leave Credits</option>
-            <option value="Terminal Leave">Terminal Leave</option>
-            </optgroup>
           </select>
         </div>
+
+       
+
+
         <div class="form-group" >
           <input type="text" id="specify_details" name="specify_details" class="underline-input" placeholder="Specify Details"
           style="
@@ -150,6 +170,16 @@
             margin-top:-50px;
           " >
         </div>
+
+         <div class="form-group" id="other_purpose_group">
+          <label for="other_purpose_detail">Other Purpose</label>
+          <select id="other_purpose_detail" name="other_purpose_detail">
+            <option value="" disabled selected>Select Other Purpose</option>
+            <option value="Monetization of Leave Credits">Monetization of Leave Credits</option>
+            <option value="Terminal Leave">Terminal Leave</option>
+          </select>
+        </div>
+
         <div class="form-group-row" >
             <div class="form-group" id="date_filing">
               <label for="startDate">Start Date</label>
@@ -186,11 +216,12 @@
         <p><strong>Position:</strong> <span>  {{ Session::get('position') }}      </span></p>
         <p><strong>Salary:</strong> <span id="previewSalary"></span></p>
         <p><strong>Type of Leave:</strong> <span id="previewType"></span></p>
-        <p><strong>Other Details:</strong> <span id="previewOthersDetails"></span></p>
+        <p id="otherDetailsWrapper"><strong>Other Details:</strong> <span id="previewOthersDetails"></span></p>
         <p><strong>Details of Leave:</strong> <span id="previewDetail"></span></p>
+        <p id="otherDetailsWrapper1"><strong>Other Purpose:</strong> <span id="previewother_purpose_detail"></span></p>
         <p><strong>Specify Details:</strong> <span id="previewSpecifyDetails"></span></p>
         <p><strong>Working Days:</strong> <span  id="workingDays"></span></p>
-        <p><strong>Inclusive Dates:</strong> <span id="previewStartDate"></span> / <span id="previewEndDate"></span></p>
+        <p><strong>Inclusive Dates:</strong> <span id="previewStartDate"></span> - <span id="previewEndDate"></span></p>
         <p><strong>Commutation:</strong> <span  id="previewcommutation"></span></p>
         <!-- Add other fields you want to preview here -->
         <div style="text-align: center;">
@@ -575,7 +606,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const typeOthersDetails = document.getElementById("Others_details");
     const specifyDetails = document.getElementById("specify_details");
     const optGroups = document.querySelectorAll("#detail optgroup");
-
+    const otherPurposeGroup = document.getElementById("other_purpose_group");
     // Hide elements initially
     detailGroup.style.display = "none";
     dateFilingGroup.style.display = "none";
@@ -583,7 +614,7 @@ document.addEventListener("DOMContentLoaded", function () {
     submitButton.style.display = "none";
     typeOthersDetails.style.display = "none";
     specifyDetails.style.display = "none";
-
+    otherPurposeGroup.style.display = "none";
     // Show Details of Leave based on Type selection
     typeSelect.addEventListener("change", function () {
         const selectedType = typeSelect.value;
@@ -595,8 +626,32 @@ document.addEventListener("DOMContentLoaded", function () {
         dateFilingGroup_2.style.display = "none";
         submitButton.style.display = "none";
 
-        if (selectedType) {
+       if (selectedType == "Vacation Leave" ||
+          selectedType == "Sick Leave" ||
+          selectedType == "Special Privilege Leave") {
             detailGroup.style.display = "block"; // Show details of leave
+        }
+        if (
+        selectedType === "Vacation Leave" ||
+        selectedType === "Sick Leave" ||
+        selectedType === "Others:"
+      ) {
+        otherPurposeGroup.style.display = "block";
+      }
+        
+
+          const emergencyCode = document.getElementById("emergency_code");
+        if (
+          selectedType === "10-Day VAWC Leave" ||
+          selectedType === "Special Emergency" ||
+          selectedType === "Rehabilitation Leave" ||
+          selectedType === "Sick Leave" ||
+          selectedType === "Special Privilege Leave" ||
+          selectedType === "Special Emergency"
+        ) {
+          emergencyCode.style.display = "flex";
+        } else {
+          emergencyCode.style.display = "none";
         }
 
         // Hide all options and optgroups
@@ -606,26 +661,49 @@ document.addEventListener("DOMContentLoaded", function () {
                 option.style.display = "none";
             });
         });
+      let matchingGroup = document.querySelector(`optgroup[label*="${selectedType}"]`);
+let otherGroup = document.querySelector('optgroup[label="Other Purpose"]');
 
-        let matchingGroup = document.querySelector(`optgroup[label*="${selectedType}"]`);
-        if (matchingGroup) {
-            matchingGroup.style.display = "block";
-            Array.from(matchingGroup.children).forEach(option => {
-                option.style.display = "block";
-            });
-        } else {
-            // Show "Other Purpose" if no match
-            let otherGroup = document.querySelector('optgroup[label="Other Purpose"]');
-            if (otherGroup) {
-                otherGroup.style.display = "block";
-                Array.from(otherGroup.children).forEach(option => {
-                    option.style.display = "block";
-                });
-            }
-        }
+// Always hide all first
+optGroups.forEach(group => {
+    group.style.display = "none";
+    Array.from(group.children).forEach(option => {
+        option.style.display = "none";
+    });
+});
 
-        // Show "Others Details" input if "Others" is selected
-        typeOthersDetails.style.display = selectedType === "Others:" ? "inline-block" : "none";
+// Show "Vacation Leave" if "Special Privilege Leave" is selected
+if (selectedType === "Special Privilege Leave") {
+    let vacationGroup = document.querySelector('optgroup[label="Vacation Leave"]');
+    if (vacationGroup) {
+        vacationGroup.style.display = "block";
+        Array.from(vacationGroup.children).forEach(option => {
+            option.style.display = "block";
+        });
+    }
+}
+
+// Show matching group if available
+if (matchingGroup) {
+    matchingGroup.style.display = "block";
+    Array.from(matchingGroup.children).forEach(option => {
+        option.style.display = "block";
+    });
+}
+
+// Show "Other Purpose" if the selected type is Vacation, Sick, or Others:
+if (["Vacation Leave", "Sick Leave", "Others:"].includes(selectedType)) {
+    if (otherGroup) {
+        otherGroup.style.display = "block";
+        Array.from(otherGroup.children).forEach(option => {
+            option.style.display = "block";
+        });
+    }
+}
+
+// Show "Others Details" input if "Others:" is selected
+typeOthersDetails.style.display = selectedType === "Others:" ? "inline-block" : "none";
+
     });
 
     // Show Date Filing based on Details selection
@@ -641,109 +719,98 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-   document.addEventListener("DOMContentLoaded", function () {
-        const leaveTypeSelect = document.getElementById("type"); // The dropdown for Type of Leave
-        const startDateInput = document.getElementById("startDate");
-        const endDateInput = document.getElementById("endDate");
+document.addEventListener("DOMContentLoaded", function () {
+    const leaveTypeSelect = document.getElementById("type");
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+    const emergencyYes = document.getElementById("emergencyYes");
+    const emergencyNo = document.getElementById("emergencyNo");
 
-        // Mapping leave types to their required advance days
-        const leaveAdvanceDays = {
-            "Vacation Leave": 5,
-            "Mandatory/Forced Leave": 1,
-            "Sick Leave": 5,
-            "Maternity Leave": 1,
-            "Paternity Leave": 1,
-            "Special Privilage Leave": 7,
-            "Solo Parent Leave": 7,
-            "Study Leave": 1,
-            "10-Day VAWC Leave": 1,
-            "Rehabilitation Leave": 7,
-            "Special Leave Benifits for Woman": 5,
-            "Special Emergency": 5,
-            "Adoption Leave": 1
-        };
+    const leaveAdvanceDays = {
+        "Vacation Leave": 5,
+        "Mandatory/Forced Leave": 1,
+        "Sick Leave": 5,
+        "Maternity Leave": 1,
+        "Paternity Leave": 1,
+        "Special Privilege Leave": 7,
+        "Solo Parent Leave": 7,
+        "Study Leave": 1,
+        "10-Day VAWC Leave": 1,
+        "Rehabilitation Leave": 7,
+        "Special Leave Benifits for Woman": 5,
+        "Special Emergency": 5,
+        "Adoption Leave": 1
+    };
 
-        // Initialize Flatpickr for start date without setting any initial value
-        const startDatePicker = flatpickr(startDateInput, {
-            dateFormat: "Y-m-d",
-            minDate: "today",
-            defaultDate: null, // Ensure no initial value is set
-            onChange: function(selectedDates, dateStr, instance) {
-            // Set the startDateInput as required when the date is selected
+    const startDatePicker = flatpickr(startDateInput, {
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        defaultDate: null,
+        onChange: function(selectedDates, dateStr) {
             startDateInput.required = true;
-    }
-        });
-
-        const endDatePicker = flatpickr(endDateInput, {
-            dateFormat: "Y-m-d",
-            minDate: "today",
-            defaultDate: null, // Ensure no initial value is set
-            onChange: function(selectedDates, dateStr, instance) {
-                // Set the endDateInput as required when the date is selected
-                endDateInput.required = true;
-            }
-        });
-
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function(event) {
-            if (!startDateInput.value || !endDateInput.value) {
-                alert("Please select both start and end dates.");
-                event.preventDefault(); // Prevent form submission
-            }
-        });
-        // Function to update the start date based on leave type
-        function updateStartDate() {
-            const leaveType = leaveTypeSelect.value;
-            const daysToAdd = leaveAdvanceDays[leaveType] || 1; // Default to 1 day if not listed
-            const newStartDate = new Date();
-            newStartDate.setDate(newStartDate.getDate() + daysToAdd);
-
-            // Set the new min date for start date
-            startDatePicker.set("minDate", newStartDate);
-
-            // Ensure end date is at least the same as the new start date
-            endDatePicker.set("minDate", newStartDate);
         }
-
-        // Listen for changes in the leave type dropdown
-        leaveTypeSelect.addEventListener("change", updateStartDate);
     });
 
+    const endDatePicker = flatpickr(endDateInput, {
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        defaultDate: null,
+        onChange: function(selectedDates, dateStr) {
+            endDateInput.required = true;
+        }
+    });
 
-    document.addEventListener("DOMContentLoaded", function () {
+    function updateStartDate() {
+        const leaveType = leaveTypeSelect.value;
+        let daysToAdd = leaveAdvanceDays[leaveType] || 1;
+
+        // If emergency is selected, override the restriction
+        if (emergencyYes.checked) {
+            daysToAdd = 0;
+        }
+
+        const newStartDate = new Date();
+        newStartDate.setDate(newStartDate.getDate() + daysToAdd);
+
+        startDatePicker.set("minDate", newStartDate);
+        endDatePicker.set("minDate", newStartDate);
+    }
+
+    // Run updateStartDate on leave type change
+    leaveTypeSelect.addEventListener("change", updateStartDate);
+
+    // Also run updateStartDate when emergency selection changes
+    emergencyYes.addEventListener("change", updateStartDate);
+    emergencyNo.addEventListener("change", updateStartDate);
+
+    // Validate form on submit
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        if (!startDateInput.value || !endDateInput.value) {
+            alert("Please select both start and end dates.");
+            event.preventDefault();
+        }
+    });
+
+    // Salary Grade Logic
     const salaryGradeSelect = document.getElementById("salary_grade");
     const stepGradeSelect = document.getElementById("step_grade");
     const salaryInput = document.getElementById("salary");
 
-    // Function to fetch salary when both salary grade and step grade are selected
     function updateSalary() {
         const salaryGrade = salaryGradeSelect.value;
         const stepGrade = stepGradeSelect.value;
 
-        // Log the values for debugging
-        console.log("Selected Salary Grade:", salaryGrade);
-        console.log("Selected Step Grade:", stepGrade);
-
-        // Check if both salary grade and step grade are selected
         if (salaryGrade && stepGrade) {
-            // Make an AJAX request to fetch the salary based on the selected values
             fetch("{{ url('/get-salary') }}?salary_grade=" + salaryGrade + "&step_grade=" + stepGrade)
-                .then(response => {
-                    // Log the response status and response body
-                    console.log("Response status:", response.status);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    console.log("Received data:", data);  // Log the received data
-                    // Update the salary input with the fetched salary
                     if (data.salary) {
-                        // Format the salary to include the currency format (Php)
                         const formattedSalary = new Intl.NumberFormat('en-PH', {
                             style: 'currency',
                             currency: 'PHP',
                             minimumFractionDigits: 2
                         }).format(data.salary);
-                        
                         salaryInput.value = formattedSalary;
                     } else {
                         salaryInput.value = "Salary not found";
@@ -756,14 +823,26 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Listen for changes in salary grade or step grade
     salaryGradeSelect.addEventListener("change", updateSalary);
     stepGradeSelect.addEventListener("change", updateSalary);
 });
-
 </script>
 <script>
-   function previewForm() {
+function formatDate(input) {
+    if (!input) return '------';
+
+    const date = new Date(input);
+    if (isNaN(date)) return '------'; // handle invalid dates
+
+    const day = date.getDate().toString().padStart(2, '0');
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} ${month} ${year}`;
+}
+
+function previewForm() {
     // Capture form values
     const department = document.getElementById('department').value || '------';
     const salary = document.getElementById('salary').value || '------'; 
@@ -771,35 +850,49 @@ document.addEventListener("DOMContentLoaded", function () {
     const Others_details = document.getElementById('Others_details').value || '------';
     const detail = document.getElementById('detail').value || '------';
     const specify_details = document.getElementById('specify_details').value || '------';
-    const startDate = document.getElementById('startDate').value || '------';
-    const endDate = document.getElementById('endDate').value || '------';
     const commutation = document.getElementById('commutation').value || '------';
+    const other_purpose_detail = document.getElementById('other_purpose_detail').value || '------';
 
+    // Format dates
+    const rawStartDate = document.getElementById('startDate').value;
+    const rawEndDate = document.getElementById('endDate').value;
+    const startDate = formatDate(rawStartDate);
+    const endDate = formatDate(rawEndDate);
+
+    const otherDetailsWrapper = document.getElementById('otherDetailsWrapper');
+    if (Others_details !== '------') {
+        otherDetailsWrapper.style.display = 'block';
+    } else {
+        otherDetailsWrapper.style.display = 'none';
+    }
+
+    const otherDetailsWrapper1 = document.getElementById('otherDetailsWrapper1');
+    if (other_purpose_detail !== '------') {
+        otherDetailsWrapper1.style.display = 'block';
+    } else {
+        otherDetailsWrapper1.style.display = 'none';
+    }
     
-
     // Function to calculate working days between two dates
-    function calculateWorkingDays(startDate, endDate) {
-        var start = new Date(startDate);
-        var end = new Date(endDate);
-        var workingDays = 0;
+    function calculateWorkingDays(start, end) {
+        let startDate = new Date(start);
+        let endDate = new Date(end);
+        let workingDays = 0;
 
-        // Loop through each date from start to end
-        while (start <= end) {
-            var dayOfWeek = start.getDay();
-            // Check if the day is a weekday (Monday - Friday)
-            if (dayOfWeek != 0 && dayOfWeek != 6) { // 0 = Sunday, 6 = Saturday
+        while (startDate <= endDate) {
+            const dayOfWeek = startDate.getDay();
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Monday-Friday
                 workingDays++;
             }
-            start.setDate(start.getDate() + 1); // Move to the next day
+            startDate.setDate(startDate.getDate() + 1);
         }
-
         return workingDays;
     }
 
-    // Calculate working days if startDate and endDate are not "------"
+    // Calculate working days only if both dates are valid
     let workingDays = '------';
-    if (startDate !== '------' && endDate !== '------') {
-        workingDays = calculateWorkingDays(startDate, endDate) + ' day/s';
+    if (rawStartDate && rawEndDate) {
+        workingDays = calculateWorkingDays(rawStartDate, rawEndDate) + ' day/s';
     }
 
     // Populate preview modal
@@ -813,8 +906,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('previewEndDate').innerText = endDate;
     document.getElementById('workingDays').innerText = workingDays;
     document.getElementById('previewcommutation').innerText = commutation;
+    document.getElementById('previewother_purpose_detail').innerText = other_purpose_detail;
+
     // Check if mandatory fields are filled (excluding Others_details and Specify_details)
-    const isFormValid = department !== '------' && salary !== '------' && type !== '------' && detail !== '------' && startDate !== '------' && endDate !== '------';
+    const isFormValid = department !== '------' && salary !== '------' && type !== '------' && detail !== '------' && rawStartDate !== '' && rawEndDate !== '';
 
     // Show or hide the Submit button
     const submitButton = document.getElementById('show-only');
@@ -823,32 +918,23 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
         submitButton.style.display = 'none'; // Hide the Submit button if any required field is missing
     }
+
     // Show the modal
     document.getElementById('previewModal').style.display = 'block';
 }
 
-
 function closePreview() {
-    // Close the modal
     document.getElementById('previewModal').style.display = 'none';
 }
-// Get the current date
+
+// Get the current date formatted for display
 const currentDate = new Date();
-
-// Array to store the names of months
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-// Get the day, month, and year
 const day = currentDate.getDate();
 const month = months[currentDate.getMonth()];
 const year = currentDate.getFullYear();
-
-// Format the date as "Month Day, Year"
 const formattedDate = `${month} ${day}, ${year}`;
-
-// Set the formatted date in the <span> element
 document.getElementById('dateNow').innerText = formattedDate;
-
-
 </script>
+
 @endsection

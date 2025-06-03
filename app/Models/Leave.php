@@ -13,10 +13,13 @@ class Leave extends Model
 
     protected $fillable = [
         'employee_id',
-        'name',
+        'fname',
+        'mname',
+        'lname',
         'date',
         'month',
         'year',
+        'monthly_salary',
 
         'vl',
         'fl',
@@ -35,5 +38,17 @@ class Leave extends Model
         'sl_absences_withoutpay',
 
         'total_leave_earned',
+        'day_A_T',
+        'hour_A_T',
+        'minutes_A_T',
+        'times_A_T',
+
+        'day_Under',
+        'hour_Under',
+        'minutes_Under',
+        'times_Under',
+        'total_conversion',
+        'constant_factor',
+        'total_benifits',
     ];
 }

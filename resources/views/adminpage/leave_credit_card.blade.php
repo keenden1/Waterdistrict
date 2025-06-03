@@ -9,11 +9,13 @@
     <span style="display: flex; justify-content: start;">
     <h2><span id="date-time"></span></h2>
     </span>
-    <a href="{{ route('xl') }}"><button class="btn2" id="btn2">Generate Report</button></a>
+    <a href="#" id="print-report-link">
+      <button class="btn2" type="button">Print Report</button>
+    </a>
     </div>
 </div>
 <div class="table-name" style="justify-content:space-between">
-    <div class="div-name-header" style="display: flex; align-items:center; Justify-content: center; font-size:32px;">Name: <p style="text-transform: capitalize;text-decoration: underline; margin:0 0 0 20px; font-size:32px;">asdasdas</p></div>
+    <div class="div-name-header" style="display: flex; align-items:center; Justify-content: center; font-size:32px;">Name: <p style="text-transform: capitalize;text-decoration: underline; margin:0 0 0 20px; font-size:32px;">{{$name}}</p></div>
     <div style="border:3px solid #333; display:flex;"> 
             <table class="table-card">
                 <tbody>
@@ -94,72 +96,89 @@
         <td colspan="7" style="text-align: center;"><strong>BALANCE BROUGHT FORWARD</strong> </td>
         <td></td>
         <td></td>
-        <td style="text-align: center;"><strong>0.00</strong></td>
+        <td style="text-align: center;"><strong>{{$vl_oldbalance}}</strong></td>
         <td></td>
         <td></td>
         <td></td>
-        <td style="text-align: center;"><strong>0.00</strong></td>
+        <td style="text-align: center;"><strong>{{$sl_oldbalance}}</strong></td>
         <td></td>
-        <td style="text-align: center;"><strong>0.00</strong></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td style="text-align: center;"><strong>2010</strong> </td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td style="text-align: center;"><strong>{{$total_oldbalance}}</strong></td>
         <td></td>
     </tr>
     <tr>
-      <td style="text-align: center;">January</td>
-      <td style="text-align: center;">12</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
-      <td style="text-align: center;">0</td>
+        <td style="text-align: center;"><strong>{{$year}}</strong> </td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
     </tr>
+   
+     @forelse($leaves as $leave)
     <tr>
-        <td style="text-align: center;"><strong>TOTAL</strong> </td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+      <td style="text-align: center;">{{ \Carbon\Carbon::create()->month($leave->month)->format('F') ?? '' }}</td>
+      <td style="text-align: center;">{{ $leave->date ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->fl ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->sl ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->spl ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->other ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl_earned ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl_absences_withpay ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl_balance ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->vl_absences_withoutpay ?? ''}}</td>
+
+      <td style="text-align: center;">{{ $leave->sl_earned ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->sl_absences_withpay ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->sl_balance ?? ''}}</td>
+      <td style="text-align: center;">{{ $leave->sl_absences_withoutpay ?? ''}}</td>
+
+      <td style="text-align: center;">{{ $leave->total_leave_earned ?? ''}}</td>
+      <td style="text-align: center;"> </td>
     </tr>
+    
+
+@empty
+    <tr>
+        <td colspan="17" rowspan="10" style="height: 250px; text-align: center; font-size:32px;">No record Found</td>
+    </tr>
+   
+</tr>
+    
+@endforelse
+
+@if ($leaves->count() > 0)
+<tr>
+    <td style="text-align: center;"><strong>TOTAL</strong></td>
+    <td></td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL != 0 ? $total_sum_VL : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_FL != 0 ? $total_sum_FL : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL != 0 ? $total_sum_SL : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SPL != 0 ? $total_sum_SPL : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_OTHER != 0 ? $total_sum_OTHER : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL_EARNED != 0 ? $total_sum_VL_EARNED : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL_WITHPAY != 0 ? $total_sum_VL_WITHPAY : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL_BALANCE != 0 ? $total_sum_VL_BALANCE : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_VL_WITHOUTPAY != 0 ? $total_sum_VL_WITHOUTPAY : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL_EARNED != 0 ? $total_sum_SL_EARNED : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL_WITHPAY != 0 ? $total_sum_SL_WITHPAY : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL_BALANCE != 0 ? $total_sum_SL_BALANCE : '' }}</td>
+    <td style="text-align: center; font-weight:bold;">{{ $total_sum_SL_WITHOUTPAY != 0 ? $total_sum_SL_WITHOUTPAY : '' }}</td>
+    <td style="text-align: center;font-weight:bold;">{{ $total_sum_total_leave_earned != 0 ? $total_sum_total_leave_earned : '' }}</td>
+    <td></td>
+</tr>
+@endif
 </table>
 
 
@@ -505,5 +524,22 @@ table {
   setInterval(updateDateTime, 1000);
 </script>
 
-    
+    </script>
+
+    <script>
+  document.getElementById('print-report-link').addEventListener('click', function(e) {
+    e.preventDefault();
+
+    const month =  '{{ $id }}'
+    const year = '{{ $year }}';
+
+    if (!month || !year) {
+      alert('Please select both month and year.');
+      return;
+    }
+
+    const url = `/print_leave_credit_card/${month}/${year}`;
+    window.open(url, '_blank'); // open in new tab
+  });
+</script>
 @endsection

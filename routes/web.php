@@ -31,6 +31,7 @@ Route::get('/Application-History', [Employee::class,'History'])->name('History-p
 
 Route::get('/Profile', [Employee::class,'Profile'])->name('Profile-page');
 Route::put('/Profile-update', [Employee::class,'Profile_update'])->name('profile.update');
+Route::put('/profile/e-signature', [Employee::class, 'updateESignature'])->name('profile.e_signature');
 
 
 
@@ -43,6 +44,8 @@ Route::post('/Admin-Login', [Admin::class, 'Admin_Login'])->name('Admin-Login');
 Route::post('/Register-Admin', [Admin::class, 'registerAdmin'])->name('Register-Admin-Post');
 Route::get('/Admin-Dashboard', [Admin::class,'Admin_Dashboard'])->name('Admin-Dashboard-page');
 
+Route::post('/change-password', [Admin::class, 'changePassword'])->name('change-password');
+
 Route::get('/Admin-Application-Leave', [Admin::class,'Admin_Application_Leave'])->name('Admin-Application-Leave-page');
 
 Route::get('/Admin-Employee-Account', [Admin::class,'Admin_Employee_Account'])->name('Admin-Employee-Account-page');
@@ -53,10 +56,13 @@ Route::post('/Admin-Leave-Credit-Card-Generate', [Admin::class,'Admin_Leave_Cred
 
 Route::get('/Admin-Summary', [Admin::class,'Admin_Summary'])->name('Admin-Summary-page');
 Route::post('/Admin-Summary-Generate', [Admin::class,'Admin_Summary_Generate'])->name('Admin-Summary-Generate-page');
+Route::get('/export-late-template/{month}/{year}', [Admin::class, 'export_late_WithTemplate'])->name('export.late.template');
+
 
 
 Route::get('/Admin-Terminal-Leave', [Admin::class,'Admin_Terminal_Leave'])->name('Admin-Terminal-Leave-Form-page');
 Route::post('/Admin-Terminal-Leave-Generate', [Admin::class,'Admin_Terminal_Leave_Generate'])->name('Admin-Terminal-Leave-Generate-page');
+Route::get('/export-terminal-template/{month}/{year}', [Admin::class, 'exportWithTemplate'])->name('terminal.leave.export.template');
 
 
 Route::get('/Admin-Control-Panel', [Admin::class,'Admin_Control_Panel'])->name('Admin-Control-Panel-page');
@@ -92,7 +98,7 @@ Route::post('/update-status-activate/{id}', [Admin::class, 'updateStatusactivate
 Route::post('/update-status-disable/{id}', [Admin::class, 'updateStatusdisable']);
 
 Route::get('/export-users/{id}', [Admin::class, 'exportUsers'])->name('sus');
-Route::get('/xl', [Admin::class, 'xl'])->name('xl');
+Route::get('/print_leave_credit_card/{id}/{year}', [Admin::class, 'print_leave_credit_card'])->name('print_leave_credit_card');
 
 
 Route::get('/samples', [Admin::class, 'samples'])->name('samples');
@@ -109,15 +115,3 @@ Route::get('/It', function () {
 });
 
 
-Route::get('/Dashboard', function () {
-    return view('adminpage/dashboard');
-});
-Route::get('/Application-admin', function () {
-    return view('adminpage/application_for_leave');
-});
-Route::get('/layout', function () {
-    return view('layout/layout');
-});
-Route::get('/table', function () {
-    return view('adminpage/table_work');
-});

@@ -15,13 +15,15 @@ return new class extends Migration
     {
         Schema::create('terminal_leave_records', function (Blueprint $table) {
             $table->id();
-            $table->string('year');
-            $table->string('month');
-            $table->decimal('monthly_salary', 12, 2);
-            $table->decimal('leave_credits', 8, 3)->nullable(); // Total leave credits earned (VL + SL)
-            $table->decimal('payable_to_date', 12, 2)->nullable();
-            $table->decimal('balance_previous_month', 12, 2)->nullable();
-            $table->decimal('payable_current_month', 12, 2)->nullable();
+            $table->unsignedBigInteger('employee_id');
+            $table->integer('month');
+            $table->integer('year');
+            $table->float('vl')->default(0);
+            $table->float('sl')->default(0);
+            $table->float('total')->default(0);
+            $table->float('constant_factor')->default(0.0481927);
+            $table->decimal('grand_total', 15, 2)->default(0);
+            $table->decimal('salary', 15, 2)->default(0);
             $table->timestamps();
         });
     }

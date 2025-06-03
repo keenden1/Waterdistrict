@@ -109,7 +109,29 @@ section{
 }
 
 
+
 .submit-btn {
+  float: left;
+  margin-top: 20px;
+  padding: 10px 30px;
+  border: none;
+  outline: none;
+  background-color: #016a70;
+  font-family: "Montserrat";
+  font-size: 18px;
+  cursor: pointer;
+  color:white;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.submit-btn:hover {
+  /* background-color: rgb(151, 231, 255); */
+  transform: scale(1.05); /* Slight zoom effect */
+    background-color: #018c94;
+}.submit-btn:active {
+            background-color:rgb(1, 122, 129);
+            transform: scale(0.98);
+            }
+/* .submit-btn {
  float: left;
   margin-top: 20px;
   padding: 10px 30px;
@@ -126,10 +148,10 @@ section{
   background-color: aquamarine;
 }
 .submit-btn:hover {
-  /* background-color: rgb(151, 231, 255); */
-  transform: scale(1.05); /* Slight zoom effect */
+  background-color: rgb(151, 231, 255);
+  transform: scale(1.05); Slight zoom effect
  
-}
+} */
 
 .image-side-img {
         width: 30%;

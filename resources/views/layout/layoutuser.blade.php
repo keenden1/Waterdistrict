@@ -64,7 +64,7 @@
           <span class="nav__name">Application History</span>
         </a>
         <a href="{{ url('/Profile') }}" class="nav__link" id="active">
-          <i class='bx bx-terminal nav__icon'></i>
+          <i class='bx  bx-user-circle'></i> 
           <span class="nav__name">Edit Profile</span>
         </a>
        

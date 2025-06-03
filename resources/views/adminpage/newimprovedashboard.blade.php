@@ -81,7 +81,7 @@
           {{ $item->a_availed_others }}
        @endif
       </td>
-      <td>{{ $item->date_filing }}</td>
+      <td>{{ \Carbon\Carbon::parse($item->date_filing)->format('d, M Y') }}</td>
       @if ($item->status == 'Pending')
           <td><span class="pending-dot"></span>{{ $item->status }}</td>
       @endif
@@ -91,7 +91,7 @@
       @if ($item->status == 'Declined')
           <td><span class="pending-dot"></span>{{ $item->status }}</td>
       @endif
-      <td><a href="{{ url('/Admin-Application-Leave') }}"><button>View</button></a></td>
+      <td><a href="{{ url('/Admin-Application-Leave') }}" ><button class="btn5">View</button></a></td>
     </tr>
     @empty
             <tr>
@@ -434,28 +434,48 @@ th[role=columnheader]:not(.no-sort):hover:after {
         display: inline-block; /* Ensures it behaves like a dot */
         margin-right: 10px;
         }
-button {
+/* button {
     padding: 6px 10px;
     font-size: 14px;
     font-weight: 600;
     border: none;
     border-radius: 6px;
-    background-color: #1E3A8A; /* Dark blue */
+    background-color: #1E3A8A; 
     color: white;
     cursor: pointer;
     transition: background 0.3s ease-in-out, transform 0.2s ease;
 }
 
 button:hover {
-    background-color: #142c6e; /* Slightly darker blue */
+    background-color: #142c6e; 
     transform: scale(1.05);
 }
 
 button:active {
     background-color: #0f1e4f;
     transform: scale(0.98);
-}
+} */
+ .btn5 {
+            background-color: #016a70;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.3s ease;
+          }
 
+          .btn5:hover {
+            background-color: #018c94;
+          }
+          .btn5:active {
+            background-color:rgb(1, 122, 129);
+            transform: scale(0.98);
+}
     </style>
     <script>
 function confirmAction() {

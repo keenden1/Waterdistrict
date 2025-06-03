@@ -12,6 +12,7 @@ class Employee_Account extends Model
     protected $fillable = [
         'employee_id',
         'email',
+        'password',
         'fname',
         'mname',
         'lname',
@@ -19,5 +20,6 @@ class Employee_Account extends Model
         'account_status',
         'role',
         'profile_picture',
+        'e_signature',
     ];
 }

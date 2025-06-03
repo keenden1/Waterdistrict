@@ -27,7 +27,7 @@
         {{ session('success') }}
     </div>
     @endif
-    <form method="POST" action="{{ route('Admin-Login') }}">
+    <form method="POST" action="{{ route('Admin-Login') }}" id="admin-login-form">
         @csrf
 
         <!-- Email Field -->
@@ -45,10 +45,14 @@
             <span class="text-danger" id="error-message">{{ $message }}</span>
         @enderror
 
-        <button type="submit" id="login-button">Login</button>
+         <div style="width:50px; position:relative; margin: 10px 0;">
+        <input type="checkbox" id="admin_remember" name="admin_remember" value="1" >
+        <label for="admin_remember" style="position:absolute; left:50px; margin-top:2px;">Remember&nbsp;Me</label>
+        </div>
+
+        <button type="submit" id="admin-login-button">Login</button>
     </form>
    @if ($count == 0)
-    <p>{{ $count }}</p>
     <p class="link-text">
         Doesn't have an account?
         <a href="{{ url('/Admin-Register-Page') }}">Register</a>
@@ -278,13 +282,31 @@
         }, 5000); 
 
     </script>
-        <script>
-  const form = document.querySelector('form');
-  const loginBtn = document.getElementById('login-button');
+   <script>
+  const form = document.querySelector('#admin-login-form');
+  const loginBtn = document.getElementById('admin-login-button');
+  const emailInput = document.querySelector('input[name="email"]');
+  const rememberCheckbox = document.getElementById('admin_remember');
+
+  // On page load, prefill email if saved
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedEmail = localStorage.getItem('savedEmail');
+    if (savedEmail) {
+      emailInput.value = savedEmail;
+      rememberCheckbox.checked = true;
+    }
+  });
 
   form.addEventListener('submit', function(e) {
     // Prevent double submits
     if (loginBtn.disabled) return;
+
+    // Save or remove email based on checkbox
+    if (rememberCheckbox.checked) {
+      localStorage.setItem('savedEmail', emailInput.value);
+    } else {
+      localStorage.removeItem('savedEmail');
+    }
 
     // Disable the button
     loginBtn.disabled = true;

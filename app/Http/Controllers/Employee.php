@@ -20,6 +20,7 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\Exception\AuthException;
 use Kreait\Firebase\Exception\Auth\UserNotFound;
 use Carbon\Carbon;
+use Complex\Complex;
 
 class Employee extends Controller
 {
@@ -46,6 +47,7 @@ function Check()
    
 
 }
+
 public function Profile_update(Request $request)
 {
     $request->validate([
@@ -75,6 +77,41 @@ public function Profile_update(Request $request)
 
     return redirect()->back()->with('error', 'Employee not found.');
 }
+
+
+public function updateESignature(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email|exists:employee_account,email',
+        'e_signature' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
+    ]);
+
+    $employee = Employee_Account::where('email', $request->email)->first();
+
+    if ($employee) {
+        // Delete old profile picture if it exists
+        if ($employee->e_signature && file_exists(public_path($employee->e_signature))) {
+            unlink(public_path($employee->e_signature));
+        }
+
+        // Store the new uploaded image
+        $file = $request->file('e_signature');
+        $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path('e_signature'), $filename);
+
+        // Update the profile picture path in the database
+        $employee->e_signature = 'e_signature/' . $filename;
+        $employee->save();
+
+        return redirect()->back()->with('success', 'Profile picture updated successfully!');
+    }
+
+    return redirect()->back()->with('error', 'Employee not found.');
+}
+
+
+
+
 
 function Landingpage()
 {
@@ -292,7 +329,7 @@ public function registerUser(Request $request)
         $data['mname'] = $request->mname;
         $data['lname'] = $request->lname;
         $data['position'] = $request->position; 
-        $data['account_status'] = "pending";
+        $data['account_status'] = "Pending";
         $data['role'] = "user";
         Employee_Account::create($data);
 
@@ -469,7 +506,20 @@ public function getSalary(Request $request)
                 if ($check_status->account_status == 'pending') {
                     return redirect('/Check');
                 } else{
-                        return view('employee.application_for_leave');
+             $currentYear = Carbon::now()->year;
+                    $countVL = Application_leave::where('a_availed', 'Special Leave')
+                      ->where('status', 'Approved')
+                      ->whereYear('created_at', $currentYear)
+                      ->count();
+                    $countSL = Application_leave::where('a_availed', 'Forced Leave')
+                      ->where('status', 'Approved')
+                      ->whereYear('created_at', $currentYear)
+                      ->count();
+                   
+                    $VL= 3 - $countSL;
+                    $SL= 5 - $countSL;
+                  
+                        return view('employee.application_for_leave' ,compact('VL','SL'));
                     }
         } else {
             return redirect('/Resend')->with('error', 'Please verify your email.');
@@ -477,9 +527,9 @@ public function getSalary(Request $request)
 
     }
     function History(){
-        $firebaseAuth = app('firebase.auth');
+         $firebaseAuth = app('firebase.auth');
         // Get logged-in user's email from session
-        $email = Session::get('user_email');
+             $email = Session::get('user_email');
           $user = Employee_Account::where('email', $email)->first();
 
                 if ($user && $user->role === 'admin') {
@@ -497,7 +547,10 @@ public function getSalary(Request $request)
                     return redirect('/Check');
                 } else{
 
-                $history = Application_leave::where('email', $email)->get();
+                $history = Application_leave::where('email', $email)
+                ->orderBy('date_filing', 'desc')
+                ->get();
+
                         return view('employee.history', compact('history'));
                     }
         } else {
@@ -529,9 +582,20 @@ public function getSalary(Request $request)
                     $balance  = Leave::where('employee_id', $employee->employee_id)
                     ->latest() // equivalent to orderBy('created_at', 'desc')
                     ->first();
-
-
-                        return view('employee.profile',compact('employee','balance'));
+                    
+                    $currentYear = Carbon::now()->year;
+                    $countVL = Application_leave::where('a_availed', 'Special Leave')
+                      ->where('status', 'Approved')
+                      ->whereYear('created_at', $currentYear)
+                      ->count();
+                    $countSL = Application_leave::where('a_availed', 'Forced Leave')
+                      ->where('status', 'Approved')
+                      ->whereYear('created_at', $currentYear)
+                      ->count();
+                   
+                    $SPL= 3 - $countSL;
+                    $FL= 5 - $countSL;
+                        return view('employee.profile',compact('employee','balance','SPL', 'FL'));
                     }
         } else {
             return redirect('/Resend')->with('error', 'Please verify your email.');

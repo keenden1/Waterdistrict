@@ -21,13 +21,16 @@
         <input type="text" id="searchInput" placeholder="Search..." >
     </span>
 </div>
+<div>
+  
+</div>
 <div class="scroll" style="max-height: 520px; overflow-y: auto; border: 1px solid #ccc; margin-top:20px; border-radius:5px;">
     <table id="leaveTable">
   <thead>
     <tr>
       <th style="text-align: center;">Profile</th>
       <th style="text-align: center;">Employee ID</th>
-      <th style="text-align: center;">Data</th>
+      <th style="text-align: center;">Record</th>
       <th>Name</th>
       <th>Position</th>
       <th>Account Status</th>
@@ -79,15 +82,7 @@
           <td><span class="red-dot"></span>{{ $employee->account_status }}</td>
       @endif
       <td>
-      <button popovertarget="myPopover-{{ $employee->id }}" class="btn1"  
-      style="
-            padding: 8px 13px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-           ">Update</button>
+      <button popovertarget="myPopover-{{ $employee->id }}" class="btn5">Update</button>
       </td>
 
       <!-- <button class="btn1" style="font-size: 11px;" onclick="confirmAction()"><i class='bx bxs-check-circle' style="color: #28a745; font-size:1.3rem; text-align:center;display:flex; flex-direction:row; justify-content:center; align-items:center;text-align:center;"></i>Approve</button>
@@ -491,7 +486,7 @@ table {
             font-size: 14px;
             cursor: pointer;
         }
-           .btn5{
+           .btn6{
             padding: 8px 13px;
             background-color:rgb(0, 255, 89);
             color: white;
@@ -500,6 +495,48 @@ table {
             font-size: 14px;
             cursor: pointer;
         }
+          .btn5 {
+            background-color: #016a70;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.3s ease;
+          }
+
+          .btn5:hover {
+            background-color: #018c94;
+          }
+          .btn5:active {
+            background-color:rgb(1, 122, 129);
+            transform: scale(0.98);
+            }
+            .btn7 {
+    background-color: #89CFF0; /* Soft Blue */
+    color: white;
+    border: none;
+    padding: 10px 5px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    height: 50px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn7:hover {
+    background-color: #72B4E0; /* Slightly darker blue on hover */
+  }
+
+  .btn7:active {
+    background-color: #5A9BCF; /* Even darker blue on click */
+    transform: scale(0.98);
+  }
 </style>
 <script>
 function confirmAction(applicationId, popoverId) {
