@@ -18,6 +18,7 @@ Route::post('/verify/resend', [Employee::class, 'resend'])->name('verification.r
 Route::post('/logout', [Employee::class, 'LogoutUser'])->name('logout');
 Route::get('/Read', [Employee::class,'Read'])->name('Read-Page');
 Route::get('/Check', [Employee::class,'Check'])->name('Check-Page');
+Route::get('/Disabled', [Employee::class,'Disabled'])->name('Disabled-Page');
 Route::get('/forgotpassword',  [Employee::class,'Forgot_password'])->name('Forgotpassword-Page');
 Route::post('/forgotpasswordform',  [Employee::class,'Forgot_password_form'])->name('Forgotpassword-Form-Page');
 

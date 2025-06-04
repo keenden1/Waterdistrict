@@ -886,15 +886,23 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
             return $leave->other?? 0;
         });
         // VL
-        $total_sum_VL_EARNED = $totalsum_leave->sum(function ($leave) {
-            return $leave->vl_earned?? 0;
-        });
+
+           $total_sum_VL_EARNED = number_format(
+            $totalsum_leave->sum(function ($leave) {
+                return $leave->vl_earned ?? 0;
+            }),
+            3
+        );
+
+
+
+
+
+
          $total_sum_VL_WITHPAY = $totalsum_leave->sum(function ($leave) {
             return $leave->vl_absences_withpay?? 0;
         });
-         $total_sum_VL_BALANCE = $totalsum_leave->sum(function ($leave) {
-            return $leave->vl_balance?? 0;
-        });
+ 
          $total_sum_VL_WITHOUTPAY = $totalsum_leave->sum(function ($leave) {
             return $leave->vl_absences_withoutpay?? 0;
         });
@@ -909,18 +917,19 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
          $total_sum_SL_WITHPAY = $totalsum_leave->sum(function ($leave) {
             return $leave->sl_absences_withpay?? 0;
         });
-        $total_sum_SL_BALANCE = number_format(
-            $totalsum_leave->sum(function ($leave) {
-                return $leave->sl_balance ?? 0;
-            }),
-            3
-        );
+
          $total_sum_SL_WITHOUTPAY = $totalsum_leave->sum(function ($leave) {
             return $leave->sl_absences_withoutpay ?? 0;
         });
-        $total_sum_total_leave_earned = $totalsum_leave->sum(function ($leave) {
-            return $leave->total_leave_earned ?? 0;
-        });
+        
+       $last = Leave::where('employee_id', $employee->employee_id)
+                    ->where('year', $year)
+                    ->whereNotNull('total_leave_earned')
+                    ->orderByRaw('CAST(month AS UNSIGNED) DESC')
+                    ->first();
+       $total_sum_VL_BALANCE = $last ? $last->vl_balance : 0; 
+       $total_sum_SL_BALANCE = $last ? $last->sl_balance : 0; 
+       $total_sum_total_leave_earned = $last ? $last->total_leave_earned : 0;
         
        $id = $employee->employee_id;
  
@@ -1184,7 +1193,12 @@ foreach ($late as $index => $item) {
         ->where('month', '<', $monthsreq)
         ->sum('total_benifits');
     
-    $current_month_payable = $total_leave_benefit - $previous_balance;
+    $formatted_payable = $total_leave_benefit - $previous_balance;
+
+    $current_month_payable = $formatted_payable < 0 
+        ? '(' . number_format(abs($formatted_payable), 2) . ')' 
+        : number_format($formatted_payable, 2);
+    
     
   
     return view('adminpage.terminal', compact(

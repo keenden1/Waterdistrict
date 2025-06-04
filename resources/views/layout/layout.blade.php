@@ -18,7 +18,7 @@
       <h2 id="header">@yield('header_title', 'header')</h2>
     </div>
     <div class="header__image">
-    <i class='bx bxs-bell nav__icon' id="notification-bell" style="font-size: 2.1rem; margin-right: 20px; position: relative; cursor: pointer;">
+    <!-- <i class='bx bxs-bell nav__icon' id="notification-bell" style="font-size: 2.1rem; margin-right: 20px; position: relative; cursor: pointer;">
     <span id="notification-count" style="position: absolute; top: 0; right: -5px; background: red; color: white; font-size: 12px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">3</span>
     </i>
 
@@ -29,7 +29,7 @@
         <li class="notification_style"  style="padding: 10px; border-bottom: 1px solid #ddd; cursor: pointer;">Employee account updated</li>
         <li class="notification_style"  style="padding: 10px; cursor: pointer;">System maintenance scheduled</li>
     </ul>
-  </div>
+  </div> -->
 
       <img src="{{ asset('logo/logo.png') }}" alt="prof_image">
         <p>{{ session('fullname') }}<br> <span>{{ session('user_email') }}</span></p>
