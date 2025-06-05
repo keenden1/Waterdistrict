@@ -548,66 +548,42 @@ h2{
 </style>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script>
- document.addEventListener("DOMContentLoaded", function () {
-    // Type of Leave Selection
-    const typeSelect = document.getElementById("type");
-    const othersInput = document.getElementById("Others_details");
-    const detailSelect = document.getElementById("detail");
-    const specifyInput = document.getElementById("specify_details");
-
-    // Hide the input fields by default
-    othersInput.style.display = "none";
-    specifyInput.style.display = "none";
-
-    typeSelect.addEventListener("change", function () {
-        // Reset the Details of Leave selection & Specify input
-        detailSelect.selectedIndex = 0; // Reset dropdown
-        specifyInput.value = ""; // Clear input
-        specifyInput.style.display = "none"; // Hide input field
-
-        // Show input field only when "Others" is selected
-        othersInput.style.display = (typeSelect.value === "Others:") ? "inline-block" : "none";
-    });
-
-    detailSelect.addEventListener("change", function () {
-        const selectedValue = detailSelect.value.trim();
-
-        // List of options that should NOT show the input field
-        const excludeOptions = [
-            "Monetization of Leave Credits",
-            "Terminal Leave",
-            "Completion of Master's Degree",
-            "BAR/BOARD Examination Review"
-        ];
-
-        specifyInput.style.display = excludeOptions.includes(selectedValue) ? "none" : "inline-block";
-
-        // Reset specify_details input if a new option is selected
-        specifyInput.value = "";
-    });
-});
-
-
-
-
-</script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const typeSelect = document.getElementById("type");
     const detailSelect = document.getElementById("detail");
     const dateFiling = document.getElementById("date_filing");
     const dateFiling_2 = document.getElementById("date_filing_1");
-    const submitButton = document.querySelector(".submit-btn");
+    const submitButton = document.querySelector(".submit-btn"); // used as Preview button
     const detailGroup = detailSelect.closest(".form-group");
     const dateFilingGroup = dateFiling.closest(".form-group");
     const dateFilingGroup_2 = dateFiling_2.closest(".form-group");
     const typeOthersDetails = document.getElementById("Others_details");
     const specifyDetails = document.getElementById("specify_details");
-    const optGroups = document.querySelectorAll("#detail optgroup");
     const otherPurposeGroup = document.getElementById("other_purpose_group");
-    // Hide elements initially
+    const emergencyCode = document.getElementById("emergency_code");
+    const optGroups = document.querySelectorAll("#detail optgroup");
+
+    const excludeOptions = [
+        "Monetization of Leave Credits",
+        "Terminal Leave",
+        "Completion of Master's Degree",
+        "BAR/BOARD Examination Review"
+    ];
+
+    const previewTypes = [
+        "Mandatory/Forced Leave",
+        "Maternity Leave",
+        "Paternity Leave",
+        "Solo Parent Leave",
+        "Study Leave",
+        "10-Day VAWC Leave",
+        "Rehabilitation Leave",
+        "Adoption Leave"
+
+    ];
+//locate
+    // Initial hide
     detailGroup.style.display = "none";
     dateFilingGroup.style.display = "none";
     dateFilingGroup_2.style.display = "none";
@@ -615,106 +591,125 @@ document.addEventListener("DOMContentLoaded", function () {
     typeOthersDetails.style.display = "none";
     specifyDetails.style.display = "none";
     otherPurposeGroup.style.display = "none";
-    // Show Details of Leave based on Type selection
+    emergencyCode.style.display = "none";
+
+    // On Type Change
     typeSelect.addEventListener("change", function () {
         const selectedType = typeSelect.value;
 
-        // Reset detail selection and hide initially
+        // Reset
         detailSelect.value = "";
+        specifyDetails.value = "";
         detailGroup.style.display = "none";
         dateFilingGroup.style.display = "none";
         dateFilingGroup_2.style.display = "none";
         submitButton.style.display = "none";
+        specifyDetails.style.display = "none";
+        typeOthersDetails.style.display = "none";
+        otherPurposeGroup.style.display = "none";
+        emergencyCode.style.display = "none";
 
-       if (selectedType == "Vacation Leave" ||
-          selectedType == "Sick Leave" ||
-          selectedType == "Special Privilege Leave") {
-            detailGroup.style.display = "block"; // Show details of leave
+        // Show Others input if "Others:" selected
+        if (selectedType === "Others:") {
+            typeOthersDetails.style.display = "inline-block";
         }
-        if (
-        selectedType === "Vacation Leave" ||
-        selectedType === "Sick Leave" ||
-        selectedType === "Others:"
-      ) {
-        otherPurposeGroup.style.display = "block";
+
+        // Show Preview button if selected type matches specific ones
+        if (previewTypes.includes(selectedType)) {
+            submitButton.style.display = "inline-block";
+        }
+        // Also show start and end date fields for these types
+    // Show Preview button if selected type matches specific ones
+      if (previewTypes.includes(selectedType)) {
+          submitButton.style.display = "inline-block";
+
+          // Also show start and end date fields
+          dateFilingGroup.style.display = "block";
+          dateFilingGroup_2.style.display = "block";
       }
-        
 
-          const emergencyCode = document.getElementById("emergency_code");
+
+
+        // Show Details group if needed
         if (
-          selectedType === "10-Day VAWC Leave" ||
-          selectedType === "Special Emergency" ||
-          selectedType === "Rehabilitation Leave" ||
-          selectedType === "Sick Leave" ||
-          selectedType === "Special Privilege Leave" ||
-          selectedType === "Special Emergency"
+            selectedType === "Vacation Leave" ||
+            selectedType === "Sick Leave" ||
+            selectedType === "Special Privilege Leave"
         ) {
-          emergencyCode.style.display = "flex";
-        } else {
-          emergencyCode.style.display = "none";
+            detailGroup.style.display = "block";
         }
 
-        // Hide all options and optgroups
+        // Show "Other Purpose"
+        if (["Vacation Leave", "Sick Leave", "Others:"].includes(selectedType)) {
+            otherPurposeGroup.style.display = "block";
+        }
+
+        // Show emergency code block
+        if (
+            selectedType === "10-Day VAWC Leave" ||
+            selectedType === "Special Emergency" ||
+            selectedType === "Rehabilitation Leave" ||
+            selectedType === "Sick Leave" ||
+            selectedType === "Special Privilege Leave"
+        ) {
+            emergencyCode.style.display = "flex";
+        }
+
+        // Reset all detail options
         optGroups.forEach(group => {
             group.style.display = "none";
             Array.from(group.children).forEach(option => {
                 option.style.display = "none";
             });
         });
-      let matchingGroup = document.querySelector(`optgroup[label*="${selectedType}"]`);
-let otherGroup = document.querySelector('optgroup[label="Other Purpose"]');
 
-// Always hide all first
-optGroups.forEach(group => {
-    group.style.display = "none";
-    Array.from(group.children).forEach(option => {
-        option.style.display = "none";
-    });
-});
+        // Show matching optgroup
+        const matchingGroup = document.querySelector(`optgroup[label*="${selectedType}"]`);
+        if (matchingGroup) {
+            matchingGroup.style.display = "block";
+            Array.from(matchingGroup.children).forEach(option => {
+                option.style.display = "block";
+            });
+        }
 
-// Show "Vacation Leave" if "Special Privilege Leave" is selected
-if (selectedType === "Special Privilege Leave") {
-    let vacationGroup = document.querySelector('optgroup[label="Vacation Leave"]');
-    if (vacationGroup) {
-        vacationGroup.style.display = "block";
-        Array.from(vacationGroup.children).forEach(option => {
-            option.style.display = "block";
-        });
-    }
-}
+        // Special case: show Vacation group for "Special Privilege Leave"
+        if (selectedType === "Special Privilege Leave") {
+            const vacationGroup = document.querySelector('optgroup[label="Vacation Leave"]');
+            if (vacationGroup) {
+                vacationGroup.style.display = "block";
+                Array.from(vacationGroup.children).forEach(option => {
+                    option.style.display = "block";
+                });
+            }
+        }
 
-// Show matching group if available
-if (matchingGroup) {
-    matchingGroup.style.display = "block";
-    Array.from(matchingGroup.children).forEach(option => {
-        option.style.display = "block";
-    });
-}
-
-// Show "Other Purpose" if the selected type is Vacation, Sick, or Others:
-if (["Vacation Leave", "Sick Leave", "Others:"].includes(selectedType)) {
-    if (otherGroup) {
-        otherGroup.style.display = "block";
-        Array.from(otherGroup.children).forEach(option => {
-            option.style.display = "block";
-        });
-    }
-}
-
-// Show "Others Details" input if "Others:" is selected
-typeOthersDetails.style.display = selectedType === "Others:" ? "inline-block" : "none";
-
+        // Show Other Purpose group
+        const otherGroup = document.querySelector('optgroup[label="Other Purpose"]');
+        if (
+            ["Vacation Leave", "Sick Leave", "Others:"].includes(selectedType) &&
+            otherGroup
+        ) {
+            otherGroup.style.display = "block";
+            Array.from(otherGroup.children).forEach(option => {
+                option.style.display = "block";
+            });
+        }
     });
 
-    // Show Date Filing based on Details selection
+    // On Detail Change
     detailSelect.addEventListener("change", function () {
-        dateFilingGroup.style.display = detailSelect.value ? "block" : "none";
-        dateFilingGroup_2.style.display = detailSelect.value ? "block" : "none";
-        submitButton.style.display = detailSelect.value ? "inline-block" : "none";
+        const selectedValue = detailSelect.value.trim();
+
+        // Show or hide specify field
+        specifyDetails.style.display = excludeOptions.includes(selectedValue) ? "none" : "inline-block";
+        specifyDetails.value = "";
+
+        const show = selectedValue !== "";
+        dateFilingGroup.style.display = show ? "block" : "none";
+        dateFilingGroup_2.style.display = show ? "block" : "none";
+        submitButton.style.display = show ? "inline-block" : submitButton.style.display;
     });
 });
-
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -742,14 +737,25 @@ document.addEventListener("DOMContentLoaded", function () {
         "Adoption Leave": 1
     };
 
-    const startDatePicker = flatpickr(startDateInput, {
-        dateFormat: "Y-m-d",
-        minDate: "today",
-        defaultDate: null,
-        onChange: function(selectedDates, dateStr) {
-            startDateInput.required = true;
+   const startDatePicker = flatpickr(startDateInput, {
+    dateFormat: "Y-m-d",
+    minDate: "today",
+    defaultDate: null,
+    onChange: function(selectedDates, dateStr) {
+        startDateInput.required = true;
+
+        if (selectedDates.length > 0) {
+            const selectedStart = selectedDates[0];
+            endDatePicker.set("minDate", selectedStart);
+
+            const currentEnd = endDateInput._flatpickr.selectedDates[0];
+            if (currentEnd && currentEnd < selectedStart) {
+                endDateInput.value = '';
+            }
         }
-    });
+    }
+});
+
 
     const endDatePicker = flatpickr(endDateInput, {
         dateFormat: "Y-m-d",
