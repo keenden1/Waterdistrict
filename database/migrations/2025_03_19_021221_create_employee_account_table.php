@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('profile_picture')->nullable();
             $table->string('e_signature')->nullable();
             $table->string('password')->nullable();
+            $table->integer('monthly_salary')->nullable();
+            
             $table->timestamps();
         });
     }

@@ -105,7 +105,7 @@ Route::get('/print_leave_credit_card/{id}/{year}', [Admin::class, 'print_leave_c
 Route::get('/samples', [Admin::class, 'samples'])->name('samples');
 
 Route::post('/leaves/store', [Admin::class, 'leave_store'])->name('leaves.store');
-
+Route::post('/leaves/store/multiple', [Admin::class, 'leave_store_multiple'])->name('leaves.store.multiple');
 
 
 Route::get('/form', function () {

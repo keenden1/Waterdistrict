@@ -240,7 +240,240 @@ public function leave_store(Request $request)
 
     return redirect()->back()->with('success', 'Leave record added successfully.');
 }
+public function leave_store_multiple(Request $request)
+{
+    $count = count($request->employee_id);
+    $errors = [];
 
+    for ($i = 0; $i < $count; $i++) {
+        $entry = [
+            'employee_id' => $request->employee_id[$i],
+            'month' => $request->month[$i],
+            'year' => $request->year[$i],
+            'date' => $request->date[$i] ?? null,
+            'monthly_salary' => $request->monthly_salary[$i] ?? 0,
+
+            'vl' => $request->vl[$i] ?? 0,
+            'sl' => $request->sl[$i] ?? 0,
+            'fl' => $request->fl[$i] ?? 0,
+            'spl' => $request->spl[$i] ?? 0,
+            'other' => $request->other[$i] ?? 0,
+
+            'vl_earned' => $request->vl_earned[$i] ?? 0,
+            'sl_earned' => $request->sl_earned[$i] ?? 0,
+        ];
+
+        $result = $this->processSingleLeaveEntry(new Request($entry));
+        if ($result !== true) {
+            $errors[] = $result;
+        }
+    }
+
+    if (!empty($errors)) {
+        return redirect()->back()->withErrors($errors)->withInput();
+    }
+
+    return redirect()->back()->with('success', 'Leave record(s) added successfully.');
+}
+
+
+// Helper to normalize input arrays
+private function normalizeBatchEntries(Request $request)
+{
+    $entries = [];
+    $count = count($request->employee_id);
+
+    for ($i = 0; $i < $count; $i++) {
+        $entries[] = [
+            'employee_id' => $request->employee_id[$i],
+            'month' => $request->month[$i],
+            'year' => $request->year[$i],
+            'date' => $request->date[$i],
+            'monthly_salary' => $request->monthly_salary[$i],
+
+            'vl' => $request->vl[$i],
+            'sl' => $request->sl[$i],
+            'fl' => $request->fl[$i],
+            'spl' => $request->spl[$i],
+            'other' => $request->other[$i],
+
+            'day_A_T' => $request->day_A_T[$i],
+            'hour_A_T' => $request->hour_A_T[$i],
+            'minutes_A_T' => $request->minutes_A_T[$i],
+            'times_A_T' => $request->times_A_T[$i],
+
+            'day_Under' => $request->day_Under[$i],
+            'hour_Under' => $request->hour_Under[$i],
+            'minutes_Under' => $request->minutes_Under[$i],
+            'times_Under' => $request->times_Under[$i],
+
+            'vl_earned' => $request->vl_earned[$i],
+            'vl_absences_withpay' => $request->vl_absences_withpay[$i],
+            'vl_absences_withoutpay' => $request->vl_absences_withoutpay[$i],
+
+            'sl_earned' => $request->sl_earned[$i],
+            'sl_absences_withpay' => $request->sl_absences_withpay[$i],
+            'sl_absences_withoutpay' => $request->sl_absences_withoutpay[$i],
+        ];
+    }
+
+    return $entries;
+}
+
+ function getEquivalentDayFromMinutes($totalMinutes) {
+        $totalEquivalentDay = 0;
+        while ($totalMinutes > 0) {
+            $chunk = min(60, $totalMinutes);
+            $equivalent = DB::table('working_hour')->where('minutes', $chunk)->value('equivalent_day');
+
+            if (!$equivalent) {
+                $equivalent = $chunk / 480;
+            }
+
+            $totalEquivalentDay += floatval($equivalent);
+            $totalMinutes -= $chunk;
+        }
+        return $totalEquivalentDay;
+    }
+
+private function processSingleLeaveEntry(Request $request)
+{
+    $request->validate([
+        'employee_id' => 'required|string',
+        'month' => 'required|integer|min:1|max:12',
+        'year' => 'required|integer|min:2000',
+        'date' => 'nullable|string',
+        'monthly_salary' => 'required|numeric',
+
+        'vl' => 'nullable|numeric',
+        'sl' => 'nullable|numeric',
+        'fl' => 'nullable|numeric',
+        'spl' => 'nullable|numeric',
+        'other' => 'nullable|numeric',
+
+        'day_A_T'=> 'nullable|numeric',
+        'hour_A_T'=> 'nullable|numeric',
+        'minutes_A_T'=> 'nullable|numeric',
+        'times_A_T'=> 'nullable|numeric',
+
+        'day_Under'=> 'nullable|numeric',
+        'hour_Under'=> 'nullable|numeric',
+        'minutes_Under'=> 'nullable|numeric',
+        'times_Under'=> 'nullable|numeric',
+
+        'vl_earned' => 'nullable|numeric',
+        'vl_absences_withpay' => 'nullable|numeric',
+        'vl_absences_withoutpay' => 'nullable|numeric',
+
+        'sl_earned' => 'nullable|numeric',
+        'sl_absences_withpay' => 'nullable|numeric',
+        'sl_absences_withoutpay' => 'nullable|numeric',
+    ]);
+
+    $day_A_T = $request->input('day_A_T', 0);
+    $hour_A_T = $request->input('hour_A_T', 0);
+    $minutes_A_T = $request->input('minutes_A_T', 0);
+
+    $day_Under = $request->input('day_Under', 0);
+    $hour_Under = $request->input('hour_Under', 0);
+    $minutes_Under = $request->input('minutes_Under', 0);
+
+    $Vl_totalMinutes = ($day_A_T * 480) + ($hour_A_T * 60) + $minutes_A_T;
+    $SL_totalMinutes = ($day_Under * 480) + ($hour_Under * 60) + $minutes_Under;
+
+    
+   
+
+    $totalminVl = $this->getEquivalentDayFromMinutes($Vl_totalMinutes);
+    $totalminSl = $this->getEquivalentDayFromMinutes($SL_totalMinutes);
+
+    $vl_earned_data = floatval($request->vl_earned) - $totalminVl;
+    $sl_earned_data = floatval($request->sl_earned) - $totalminSl;
+
+    $existing = Leave::where('month', $request->month)
+                    ->where('employee_id', $request->employee_id)
+                    ->where('year', $request->year)
+                    ->where('date', $request->date)
+                    ->first();
+
+    if ($existing) {
+        return "Duplicate leave for employee {$request->employee_id} in {$request->month}/{$request->year}.";
+    }
+
+    $samemonth = Leave::where('month', $request->month)
+                    ->where('employee_id', $request->employee_id)
+                    ->where('year', $request->year)
+                    ->first();
+
+    if ($samemonth) {
+        $vl_earned_data = 0;
+        $sl_earned_data = 0;
+    }
+
+    $prevMonth = $request->month - 1;
+    $prevYear = $request->year;
+
+    if ($prevMonth < 1) {
+        $prevMonth = 12;
+        $prevYear -= 1;
+    }
+
+    $previousLeave = Leave::where('month', $prevMonth)
+                        ->where('year', $prevYear)
+                        ->where('employee_id', $request->employee_id)
+                        ->latest()
+                        ->first();
+
+    $prev_vl_balance = $previousLeave?->vl_balance ?? 0;
+    $prev_sl_balance = $previousLeave?->sl_balance ?? 0;
+
+    $currentvl = $request->vl ?? 0 + $request->fl ?? 0;
+    $currentsl = $request->sl ?? 0;
+
+    $checkvl = $prev_vl_balance - $currentvl;
+    $checksl = $prev_sl_balance - $currentsl;
+
+    $leaveCount = Leave::where('employee_id', $request->employee_id)->count();
+    if ($leaveCount >= 5) {
+        if ($checkvl <= 5) {
+            return "VL exceeds available balance for employee {$request->employee_id}. You must keep at least 5.";
+        }
+        if ($checksl <= 5) {
+            return "SL exceeds available balance for employee {$request->employee_id}. You must keep at least 5.";
+        }
+    }
+
+    $vl_balance = $vl_earned_data + $checkvl;
+    $sl_balance = $sl_earned_data + $checksl;
+    $total_leave_earned = $vl_balance + $sl_balance;
+
+    $data = $request->only([
+        'employee_id', 'month', 'year', 'date',
+        'vl', 'sl', 'fl', 'spl', 'other',
+        'day_A_T', 'hour_A_T', 'minutes_A_T', 'times_A_T',
+        'day_Under', 'hour_Under', 'minutes_Under', 'times_Under',
+        'monthly_salary',
+    ]);
+
+    $data['vl_earned'] = $vl_earned_data;
+    $data['sl_earned'] = $sl_earned_data;
+    $data['vl_balance'] = $vl_balance;
+    $data['sl_balance'] = $sl_balance;
+    $data['total_leave_earned'] = $total_leave_earned;
+    $data['total_conversion'] = $totalminVl + $totalminSl;
+
+    $Name = Employee_Account::where('employee_id', $request->employee_id)->first();
+    $data['fname'] = $Name->fname;
+    $data['mname'] = $Name->mname;
+    $data['lname'] = $Name->lname;
+
+    $data['constant_factor'] = 0.0481927;
+    $data['total_benifits'] = ($request->monthly_salary ?? 0) * 0.0481927 * ($total_leave_earned ?? 0);
+
+    Leave::create($data);
+
+    return true;
+}
 
 
 public function registerUser(Request $request)

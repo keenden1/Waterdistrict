@@ -8,12 +8,12 @@
     <h1>Information Management</h1>
     <p>Manage the website content with ease, allows you to easily add, update, view, and remove information.</p>
     <div class="infobox-container">
-       <div class="infobox" style="background-color: #ffe7ef;">
+       <!-- <div class="infobox" style="background-color: #ffe7ef;">
         <div class="icon">⏱️</div>
         <h2>Vacation/Sick Hours</h2>
        <p>Equivalent Monetary Value of Vacation and Sick Leave Hours Based on Monthly Salary Rates</p>
         <a href="{{ url('/Admin-Rate') }}" class="learn-more">View &rsaquo;</a>
-      </div>
+      </div> -->
       <div class="infobox" style="background-color: #fff1e7;">
         <div class="icon">⌛</div>
         <h2>Working Hours</h2>
