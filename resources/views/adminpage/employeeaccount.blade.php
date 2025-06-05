@@ -34,7 +34,7 @@
       <th>Name</th>
       <th>Position</th>
       <th>Account Status</th>
-      <th>Action</th>
+      <th style="text-align: center;"><button onclick="openLeaveModal()" class="btn5">Monthly Data</button></th>
     </tr>
   </thead>
   <tbody>
@@ -81,7 +81,7 @@
       @if ($employee->account_status == 'Disabled')
           <td><span class="red-dot"></span>{{ $employee->account_status }}</td>
       @endif
-      <td>
+      <td style="text-align: center;">
       <button popovertarget="myPopover-{{ $employee->id }}" class="btn5">Update</button>
       </td>
 
@@ -181,8 +181,199 @@
 
 </table>
 
+
+<div id="leaveModal" class="leaveForm-modal" style="display: none;">
+  <div class="leaveForm-modal-content">
+    <span class="leaveForm-close" onclick="closeLeaveModal()">&times;</span>
+    <h2 class="leaveForm-title">Add Record</h2>
+
+    <form action="{{ route('leaves.store') }}" method="POST" class="leaveForm-form">
+      @csrf
+      <div class="leaveForm-section">
+        <h4>Period</h4>
+        <label class="leaveForm-label" for="month">Month</label>
+        <select id="month" name="month" class="leaveForm-select">
+          <option value="" disabled selected>Select..</option>
+          <?php
+            for ($i = 1; $i <= 12; $i++) {
+              $monthName = date('F', mktime(0, 0, 0, $i, 1));
+              echo "<option value=\"$i\">$monthName</option>";
+            }
+          ?>
+        </select>
+
+        <label class="leaveForm-label" for="year">Year</label>
+        <select id="year" name="year" class="leaveForm-select">
+          <option value="" disabled selected>Select..</option>
+          <?php
+            $currentYear = date('Y');
+            for ($i = 2000; $i <= $currentYear; $i++) {
+              echo "<option value=\"$i\">$i</option>";
+            }
+          ?>
+        </select>
+
+        <label class="leaveForm-label" for="date">Date</label>
+        <input type="text" name="date" placeholder="Date/Days e.g. 1-10 or 1,10" class="leaveForm-input">
+
+        <label class="leaveForm-label" for="monthly_salary">Monthly Salary</label>
+        <input type="number" name="monthly_salary" id="monthly_salary" placeholder="123.." class="leaveForm-input">
+      </div>
+
+      <div class="leaveForm-section">
+        <h4>Particular</h4>
+        <input type="number" step="0.250" min="0" name="vl" placeholder="VL (Vacation Leave)" class="leaveForm-input">
+        <input type="number" step="0.250" min="0" name="fl" placeholder="FL (Forced Leave)" class="leaveForm-input">
+        <input type="number" step="0.250" min="0" name="sl" placeholder="SL (Sick Leave)" class="leaveForm-input">
+        <input type="number" step="0.250" min="0" name="spl" placeholder="SPL (Special Leave)" class="leaveForm-input">
+        <input type="number" step="0.250" min="0" name="other" placeholder="Other" class="leaveForm-input">
+      </div>
+
+      <div class="leaveForm-section">
+        <h4>Vacation Leave</h4>
+        <label class="leaveForm-label" for="vl_earned">Earned</label>
+        <input type="number" name="vl_earned" value="1.250" class="leaveForm-input">
+        <label class="leaveForm-label" for="vl_absences_withpay">With Pay</label>
+        <input type="number" name="vl_absences_withpay" class="leaveForm-input">
+        <label class="leaveForm-label" for="vl_absences_withoutpay">Without Pay</label>
+        <input type="number" name="vl_absences_withoutpay" class="leaveForm-input">
+      </div>
+
+      <div class="leaveForm-section">
+        <h4>Sick Leave</h4>
+        <label class="leaveForm-label" for="sl_earned">Earned</label>
+        <input type="number" name="sl_earned" value="1.250" class="leaveForm-input">
+        <label class="leaveForm-label" for="sl_absences_withpay">With Pay</label>
+        <input type="number" name="sl_absences_withpay" class="leaveForm-input">
+        <label class="leaveForm-label" for="sl_absences_withoutpay">Without Pay</label>
+        <input type="number" name="sl_absences_withoutpay" class="leaveForm-input">
+      </div>
+
+      <div class="leaveForm-section">
+        <h4>Absences/Tardiness</h4>
+        <label class="leaveForm-label">Day</label>
+        <input type="number" max="30" name="day_A_T" class="leaveForm-input">
+        <label class="leaveForm-label">Hour</label>
+        <input type="number" max="59" name="hour_A_T" class="leaveForm-input">
+        <label class="leaveForm-label">Minutes</label>
+        <input type="number" max="59" name="minutes_A_T" class="leaveForm-input">
+        <label class="leaveForm-label">Times</label>
+        <input type="number" name="times_A_T" class="leaveForm-input">
+      </div>
+
+      <div class="leaveForm-section">
+        <h4>Undertime</h4>
+        <label class="leaveForm-label">Day</label>
+        <input type="number" name="day_Under" class="leaveForm-input">
+        <label class="leaveForm-label">Hour</label>
+        <input type="number" name="hour_Under" class="leaveForm-input">
+        <label class="leaveForm-label">Minutes</label>
+        <input type="number" name="minutes_Under" class="leaveForm-input">
+        <label class="leaveForm-label">Times</label>
+        <input type="number" name="times_Under" class="leaveForm-input">
+      </div>
+
+      <div class="leaveForm-buttons">
+        <button type="submit" class="leaveForm-button">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 </div>
 <style>
+
+    .leaveForm-modal {
+    display: block;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  .leaveForm-modal-content {
+  background: #fff;
+  margin: 3% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 70%;      
+  max-width: 700px;   
+  max-height: 90vh;
+  overflow-y: auto;
+  font-family: Arial, sans-serif;
+  font-size: 14px;    
+}
+
+  .leaveForm-title {
+    text-align: center;
+    margin-top: 0;
+  }
+
+  .leaveForm-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .leaveForm-section {
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .leaveForm-section h4 {
+    margin-top: 0;
+    color: #004080;
+  }
+
+  .leaveForm-label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+     font-size: 13px; 
+  }
+
+  .leaveForm-input,
+  .leaveForm-select {
+    width: 100%;
+    font-size: 13px;    
+    padding: 5px;  
+    margin-top: 4px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .leaveForm-buttons {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .leaveForm-button {
+    padding: 10px 20px;
+    background-color: #016a70;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+   .leaveForm-button:hover {
+            background-color: #018c94;
+          }
+   .leaveForm-button:active {
+            background-color:rgb(1, 122, 129);
+            transform: scale(0.98);
+            }
+  .leaveForm-close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
   .myPopover {
       position: relative;
       max-width: 700px;
@@ -647,6 +838,13 @@ document.getElementById("sortType").addEventListener("change", function () {
         }
     });
 });
+
+ function openLeaveModal() {
+    document.getElementById('leaveModal').style.display = 'block';
+  }
+  function closeLeaveModal() {
+    document.getElementById('leaveModal').style.display = 'none';
+  }
 </script>
 
     

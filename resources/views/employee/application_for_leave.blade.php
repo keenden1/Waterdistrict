@@ -91,10 +91,6 @@
         </div>
 
 
-
-
-
-
         <div class="form-group">
           <label for="type">Type of leave to be availed of</label>
           <select id="type" name="type" required>
@@ -217,9 +213,9 @@
         <p><strong>Salary:</strong> <span id="previewSalary"></span></p>
         <p><strong>Type of Leave:</strong> <span id="previewType"></span></p>
         <p id="otherDetailsWrapper"><strong>Other Details:</strong> <span id="previewOthersDetails"></span></p>
-        <p><strong>Details of Leave:</strong> <span id="previewDetail"></span></p>
+        <p id="otherDetailsWrapper2"><strong>Details of Leave:</strong> <span id="previewDetail"></span></p>
         <p id="otherDetailsWrapper1"><strong>Other Purpose:</strong> <span id="previewother_purpose_detail"></span></p>
-        <p><strong>Specify Details:</strong> <span id="previewSpecifyDetails"></span></p>
+        <p id="otherDetailsWrapper3"><strong>Specify Details:</strong> <span id="previewSpecifyDetails"></span></p>
         <p><strong>Working Days:</strong> <span  id="workingDays"></span></p>
         <p><strong>Inclusive Dates:</strong> <span id="previewStartDate"></span> - <span id="previewEndDate"></span></p>
         <p><strong>Commutation:</strong> <span  id="previewcommutation"></span></p>
@@ -580,7 +576,6 @@ document.addEventListener("DOMContentLoaded", function () {
         "10-Day VAWC Leave",
         "Rehabilitation Leave",
         "Adoption Leave"
-
     ];
 //locate
     // Initial hide
@@ -865,20 +860,19 @@ function previewForm() {
     const startDate = formatDate(rawStartDate);
     const endDate = formatDate(rawEndDate);
 
+    // Show/hide other detail wrappers
     const otherDetailsWrapper = document.getElementById('otherDetailsWrapper');
-    if (Others_details !== '------') {
-        otherDetailsWrapper.style.display = 'block';
-    } else {
-        otherDetailsWrapper.style.display = 'none';
-    }
+    otherDetailsWrapper.style.display = Others_details !== '------' ? 'block' : 'none';
 
     const otherDetailsWrapper1 = document.getElementById('otherDetailsWrapper1');
-    if (other_purpose_detail !== '------') {
-        otherDetailsWrapper1.style.display = 'block';
-    } else {
-        otherDetailsWrapper1.style.display = 'none';
-    }
-    
+    otherDetailsWrapper1.style.display = other_purpose_detail !== '------' ? 'block' : 'none';
+
+    const otherDetailsWrapper2 = document.getElementById('otherDetailsWrapper2');
+    otherDetailsWrapper2.style.display = detail !== '------' ? 'block' : 'none';
+
+    const otherDetailsWrapper3 = document.getElementById('otherDetailsWrapper3');
+    otherDetailsWrapper3.style.display = specify_details !== '------' ? 'block' : 'none';
+
     // Function to calculate working days between two dates
     function calculateWorkingDays(start, end) {
         let startDate = new Date(start);
@@ -914,17 +908,29 @@ function previewForm() {
     document.getElementById('previewcommutation').innerText = commutation;
     document.getElementById('previewother_purpose_detail').innerText = other_purpose_detail;
 
-    // Check if mandatory fields are filled (excluding Others_details and Specify_details)
-    const isFormValid = department !== '------' && salary !== '------' && type !== '------' && detail !== '------' && rawStartDate !== '' && rawEndDate !== '';
+    // Define special leave types that should show the submit button regardless
+  const forcedTypes = [
+    "Mandatory/Forced Leave",
+    "Maternity Leave",
+    "Paternity Leave",
+    "Solo Parent Leave",
+    "Study Leave",
+    "10-Day VAWC Leave",
+    "Rehabilitation Leave",
+    "Adoption Leave"
+];
 
-    // Show or hide the Submit button
-    const submitButton = document.getElementById('show-only');
-    if (isFormValid) {
-        submitButton.style.display = 'inline-block'; // Show the Submit button if valid
-    } else {
-        submitButton.style.display = 'none'; // Hide the Submit button if any required field is missing
-    }
+// Check form requirements
+const isBasicValid = department !== '------' && salary !== '------' && rawStartDate !== '' && rawEndDate !== '';
+const isFullyValid = isBasicValid && detail !== '------';
 
+// Show or hide the Submit button
+const submitButton = document.getElementById('show-only');
+if (isFullyValid || (forcedTypes.includes(type) && isBasicValid)) {
+    submitButton.style.display = 'inline-block';
+} else {
+    submitButton.style.display = 'none';
+}
     // Show the modal
     document.getElementById('previewModal').style.display = 'block';
 }
@@ -933,7 +939,7 @@ function closePreview() {
     document.getElementById('previewModal').style.display = 'none';
 }
 
-// Get the current date formatted for display
+// Set today's date
 const currentDate = new Date();
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const day = currentDate.getDate();
@@ -941,6 +947,7 @@ const month = months[currentDate.getMonth()];
 const year = currentDate.getFullYear();
 const formattedDate = `${month} ${day}, ${year}`;
 document.getElementById('dateNow').innerText = formattedDate;
+
 </script>
 
 @endsection
