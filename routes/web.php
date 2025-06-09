@@ -106,6 +106,7 @@ Route::get('/samples', [Admin::class, 'samples'])->name('samples');
 
 Route::post('/leaves/store', [Admin::class, 'leave_store'])->name('leaves.store');
 Route::post('/leaves/store/multiple', [Admin::class, 'leave_store_multiple'])->name('leaves.store.multiple');
+Route::post('/update-caption', [Admin::class, 'updateCaption']);
 
 
 Route::get('/form', function () {

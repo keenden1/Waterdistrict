@@ -7,7 +7,13 @@
 <div id="section">
   
   <table>
-    <caption>Conversion of Working Hours/Minutes</caption>
+    <caption id="editable-caption" contenteditable="true">Conversion of Working Hours/Minutes</caption>
+     <thead>
+    <tr>
+      <button onclick="saveCaption()" class="button-container">💾 Save Caption</button>
+      <button onclick="resetCaption()" class="button-container">↩ Reset</button>
+    </tr>
+  </thead>
     <thead>
   <tr>
     <th style="text-align: center;">
@@ -423,6 +429,32 @@
             background-color:rgb(1, 122, 129);
             transform: scale(0.98);
             }
+            
+caption {
+  font-size: 32px;
+  font-weight: bold;
+  padding-top: 5px;
+  text-align: center;
+}
+caption[contenteditable="true"]:focus {
+      background-color: #fffbe6;
+      border-color: #f0ad4e;
+    }
+
+
+    .button-container {
+      padding: 6px 12px;
+      margin-left: 5px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .button-container:hover {
+      background-color: #0056b3;
+    }
 </style>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -436,5 +468,24 @@
     }
   });
 </script>
+<script>
+  const caption = document.getElementById("editable-caption");
 
+  // Load caption from localStorage on page load
+  window.onload = () => {
+    const saved = localStorage.getItem("workTableCaption");
+    if (saved) caption.textContent = saved;
+  };
+
+  function saveCaption() {
+    const text = caption.textContent.trim();
+    localStorage.setItem("workTableCaption", text);
+    alert("Caption saved locally!");
+  }
+
+  function resetCaption() {
+    localStorage.removeItem("workTableCaption");
+    location.reload(); // reloads to show default
+  }
+</script>
 @endsection

@@ -734,6 +734,9 @@ public function exportUsers($id)
         $sheet->setCellValue('B41', $application->a_availed_others); 
     }
 
+    $sheet->setCellValue('H39', $application->d_commutation == 'Requested' ? '✔' : '');
+    $sheet->setCellValue('H41', $application->d_commutation == 'Not Requested' ? '✔' : '');
+
     // Commutation Requested
     $sheet->setCellValue('H45', $application->d_commutation == 'Requested' ? '✔' : '');
     $sheet->setCellValue('H47', $application->d_commutation == 'Not Requested' ? '✔' : '');
