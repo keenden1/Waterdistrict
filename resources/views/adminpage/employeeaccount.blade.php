@@ -34,7 +34,7 @@
       <th>Name</th>
       <th>Position</th>
       <th>Account Status</th>
-      <th>Action</th>
+      <th style="text-align: center;"><button onclick="openLeaveModal()" class="btn5">Monthly Record</button></th>
     </tr>
   </thead>
   <tbody>
@@ -81,7 +81,7 @@
       @if ($employee->account_status == 'Disabled')
           <td><span class="red-dot"></span>{{ $employee->account_status }}</td>
       @endif
-      <td>
+      <td style="text-align: center;">
       <button popovertarget="myPopover-{{ $employee->id }}" class="btn5">Update</button>
       </td>
 
@@ -181,8 +181,180 @@
 
 </table>
 
+<div id="leaveModal" class="leaveForm-modal" style="display: none;">
+  <div class="leaveForm-modal-content">
+    <span class="leaveForm-close" onclick="closeLeaveModal()">&times;</span>
+    <h2 class="leaveForm-title">Monthly Record</h2>
+
+    {{-- Initial Selection Form --}}
+    <form id="initialLeaveForm" class="leaveForm-form">
+      @csrf
+      <div class="leaveForm-section">
+        <h4>Employee Selection</h4>
+        <label><input type="radio" name="employee_mode" value="multiple" onchange="toggleEmployeeSelection()"> Multiple</label>
+        <label><input type="radio" name="employee_mode" value="all" onchange="toggleEmployeeSelection()"> All</label>
+
+        <div id="employeeList" style="display: block; margin-top: 10px;">
+          @foreach ($employees as $employee)
+            @php
+              $fullName = ucfirst(strtolower($employee->fname)) . ' ' .
+                          ($employee->mname ? ucfirst(strtolower($employee->mname)) . '.' : '') .
+                          ucfirst(strtolower($employee->lname));
+            @endphp
+            <label>
+              <input type="checkbox" name="employee_ids[]" value="{{ $employee->employee_id }}" data-name="{{ $fullName }}" data-salary="{{ $employee->monthly_salary }}">
+              {{ $fullName }}
+            </label><br>
+          @endforeach
+        </div>
+
+        <div id="globalPeriodSection" style="margin-top: 10px;">
+          <h4>Period Selection</h4>
+          <label class="leaveForm-label">Month</label>
+          <select id="globalMonth" class="leaveForm-select" required>
+            <option value="" disabled selected>Select..</option>
+            @for ($i = 1; $i <= 12; $i++)
+              <option value="{{ $i }}">{{ \Carbon\Carbon::create()->month($i)->format('F') }}</option>
+            @endfor
+          </select>
+
+          <label class="leaveForm-label">Year</label>
+          <select id="globalYear" class="leaveForm-select" required>
+            <option value="" disabled selected>Select..</option>
+          @for ($y = now()->year; $y >= 2010; $y--)
+            <option value="{{ $y }}">{{ $y }}</option>
+          @endfor
+          </select>
+        </div>
+      </div>
+
+      <div class="leaveForm-buttons">
+        <button type="button" onclick="startEmployeeFormFlow()" class="leaveForm-button">Proceed</button>
+      </div>
+    </form>
+
+    {{-- Multi-Employee Editable Form --}}
+    <form id="multiLeaveForm" method="POST" action="{{ route('leaves.store.multiple') }}" style="display:none;">
+      @csrf
+      <div id="multiEmployeeFormContainer"></div>
+    </form>
+  </div>
+</div>
+
+@if ($errors->any())
+  <script>
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      html: `{!! implode('<br>', $errors->all()) !!}`
+    });
+  </script>
+@endif
+
+@if (session('success'))
+  <script>
+    Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: "{{ session('success') }}"
+    });
+  </script>
+@endif
+
 </div>
 <style>
+
+    .leaveForm-modal {
+    display: block;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  .leaveForm-modal-content {
+  background: #fff;
+  margin: 3% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 70%;      
+  max-width: 700px;   
+  max-height: 90vh;
+  overflow-y: auto;
+  font-family: Arial, sans-serif;
+  font-size: 14px;    
+}
+
+  .leaveForm-title {
+    text-align: center;
+    margin-top: 0;
+  }
+
+  .leaveForm-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .leaveForm-section {
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .leaveForm-section h4 {
+    margin-top: 0;
+    color: #004080;
+  }
+
+  .leaveForm-label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+     font-size: 13px; 
+  }
+
+  .leaveForm-input,
+  .leaveForm-select {
+    width: 100%;
+    font-size: 13px;    
+    padding: 5px;  
+    margin-top: 4px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .leaveForm-buttons {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .leaveForm-button {
+    padding: 10px 20px;
+    background-color: #016a70;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+   .leaveForm-button:hover {
+            background-color: #018c94;
+          }
+   .leaveForm-button:active {
+            background-color:rgb(1, 122, 129);
+            transform: scale(0.98);
+            }
+  .leaveForm-close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
   .myPopover {
       position: relative;
       max-width: 700px;
@@ -647,7 +819,247 @@ document.getElementById("sortType").addEventListener("change", function () {
         }
     });
 });
+
+</script>
+<script>
+  let selectedEmployeeIds = [];
+let selectedEmployeeNames = [];
+
+function openLeaveModal() {
+  document.getElementById('leaveModal').style.display = 'block';
+  document.getElementById('employeeList').style.display = 'none';
+  document.getElementById('initialLeaveForm').style.display = 'block';
+  document.getElementById('multiLeaveForm').style.display = 'none';
+}
+
+function closeLeaveModal() {
+  document.getElementById('leaveModal').style.display = 'none';
+}
+
+function toggleEmployeeSelection() {
+  const mode = document.querySelector('input[name="employee_mode"]:checked');
+  if (!mode) return;
+  document.getElementById('employeeList').style.display = mode.value === 'multiple' ? 'block' : 'none';
+}
+
+function showForm(index) {
+  const forms = document.querySelectorAll(".employee-form");
+  forms.forEach((form, i) => {
+    form.style.display = i === index ? "block" : "none";
+  });
+}
+
+function startEmployeeFormFlow() {
+  const mode = document.querySelector('input[name="employee_mode"]:checked');
+  if (!mode) {
+    alert("Please select employee mode.");
+    return;
+  }
+
+  const selectedMonth = document.getElementById('globalMonth').value;
+  const selectedYear = document.getElementById('globalYear').value;
+
+  if (!selectedMonth || !selectedYear) {
+    alert("Please select both month and year.");
+    return;
+  }
+
+  const selectedMode = mode.value;
+  const allEmployees = Array.from(document.querySelectorAll('input[name="employee_ids[]"]'));
+
+  if (selectedMode === 'multiple') {
+    // Multiple Mode: get only checked employees for editing
+    const checked = allEmployees.filter(cb => cb.checked);
+    if (checked.length === 0) {
+      alert("Please select at least one employee.");
+      return;
+    }
+    selectedEmployeeIds = checked.map(cb => cb.value);
+  } else {
+    // All Mode: select all employees automatically
+    selectedEmployeeIds = allEmployees.map(cb => cb.value);
+  }
+
+  const container = document.getElementById("multiEmployeeFormContainer");
+  container.innerHTML = "";
+
+  if (selectedMode === 'multiple') {
+    // Create editable forms only for selected employees (step-by-step)
+    selectedEmployeeIds.forEach((id, index) => {
+      const cb = allEmployees.find(cb => cb.value === id);
+      const name = cb.dataset.name;
+      const salary = cb.dataset.salary || "";
+      const monthText = new Date(0, selectedMonth - 1).toLocaleString('default', { month: 'long' });
+
+      const div = document.createElement("div");
+      div.className = "employee-form";
+      div.style.display = index === 0 ? "block" : "none";
+      div.dataset.index = index;
+
+      div.innerHTML = `
+        <input type="hidden" name="employee_id[]" value="${id}">
+        <input type="hidden" name="month[]" value="${selectedMonth}">
+        <input type="hidden" name="year[]" value="${selectedYear}">
+        <h3 style="margin-bottom: 10px;">${name}</h3>
+        <p><strong>Period:</strong> ${monthText}, ${selectedYear}</p>
+
+        <div class="leaveForm-section">
+          <h4>Record Details</h4>
+          <label class="leaveForm-label">Date</label>
+          <input type="text" name="date[]" placeholder="Date/Days e.g. 1-10 or 1,10" class="leaveForm-input">
+          <label class="leaveForm-label">Monthly Salary</label>
+          <input type="number" name="monthly_salary[]" placeholder="123.." class="leaveForm-input" value="${salary}">
+        </div>
+
+        <div class="leaveForm-section">
+          <h4>Particular</h4>
+          <input type="number" step="0.250" min="0" name="vl[]" placeholder="VL (Vacation Leave)" class="leaveForm-input">
+          <input type="number" step="0.250" min="0" name="fl[]" placeholder="FL (Forced Leave)" class="leaveForm-input">
+          <input type="number" step="0.250" min="0" name="sl[]" placeholder="SL (Sick Leave)" class="leaveForm-input">
+          <input type="number" step="0.250" min="0" name="spl[]" placeholder="SPL (Special Leave)" class="leaveForm-input">
+          <input type="number" step="0.250" min="0" name="other[]" placeholder="Other" class="leaveForm-input">
+        </div>
+
+        <div class="leaveForm-section">
+          <h4>Vacation Leave</h4>
+          <label>Earned</label>
+          <input type="number" name="vl_earned[]" value="1.250" class="leaveForm-input">
+          <label>With Pay</label>
+          <input type="number" name="vl_absences_withpay[]" class="leaveForm-input">
+          <label>Without Pay</label>
+          <input type="number" name="vl_absences_withoutpay[]" class="leaveForm-input">
+        </div>
+
+        <div class="leaveForm-section">
+          <h4>Sick Leave</h4>
+          <label>Earned</label>
+          <input type="number" name="sl_earned[]" value="1.250" class="leaveForm-input">
+          <label>With Pay</label>
+          <input type="number" name="sl_absences_withpay[]" class="leaveForm-input">
+          <label>Without Pay</label>
+          <input type="number" name="sl_absences_withoutpay[]" class="leaveForm-input">
+        </div>
+
+        <div class="leaveForm-section">
+          <h4>Absences/Tardiness</h4>
+          <label>Day</label>
+          <input type="number" name="day_A_T[]" class="leaveForm-input">
+          <label>Hour</label>
+          <input type="number" name="hour_A_T[]" class="leaveForm-input">
+          <label>Minutes</label>
+          <input type="number" name="minutes_A_T[]" class="leaveForm-input">
+          <label>Times</label>
+          <input type="number" name="times_A_T[]" class="leaveForm-input">
+        </div>
+
+        <div class="leaveForm-section">
+          <h4>Undertime</h4>
+          <label>Day</label>
+          <input type="number" name="day_Under[]" class="leaveForm-input">
+          <label>Hour</label>
+          <input type="number" name="hour_Under[]" class="leaveForm-input">
+          <label>Minutes</label>
+          <input type="number" name="minutes_Under[]" class="leaveForm-input">
+          <label>Times</label>
+          <input type="number" name="times_Under[]" class="leaveForm-input">
+        </div>
+
+        <div class="leaveForm-buttons" style="margin-top: 10px; text-align: center;">
+          ${index > 0 ? `<button type="button" onclick="showForm(${index - 1})">Back</button>` : ""}
+          ${index < selectedEmployeeIds.length - 1 ? `<button type="button" onclick="showForm(${index + 1})">Next</button>` : `<button type="submit">Submit All</button>`}
+        </div>
+      `;
+
+      container.appendChild(div);
+    });
+
+    // Add hidden inputs for unselected employees with default values
+    const unselectedEmployees = allEmployees.filter(cb => !selectedEmployeeIds.includes(cb.value));
+    unselectedEmployees.forEach(cb => {
+      const id = cb.value;
+      const salary = cb.dataset.salary || "";
+      const hiddenDiv = document.createElement("div");
+      hiddenDiv.style.display = "none";
+      hiddenDiv.innerHTML = `
+        <input type="hidden" name="employee_id[]" value="${id}">
+        <input type="hidden" name="month[]" value="${selectedMonth}">
+        <input type="hidden" name="year[]" value="${selectedYear}">
+        <input type="hidden" name="date[]" value="">
+        <input type="hidden" name="monthly_salary[]" value="${salary}">
+        <input type="hidden" name="vl[]" value="0">
+        <input type="hidden" name="fl[]" value="0">
+        <input type="hidden" name="sl[]" value="0">
+        <input type="hidden" name="spl[]" value="0">
+        <input type="hidden" name="other[]" value="0">
+        <input type="hidden" name="vl_earned[]" value="1.250">
+        <input type="hidden" name="vl_absences_withpay[]" value="0">
+        <input type="hidden" name="vl_absences_withoutpay[]" value="0">
+        <input type="hidden" name="sl_earned[]" value="1.250">
+        <input type="hidden" name="sl_absences_withpay[]" value="0">
+        <input type="hidden" name="sl_absences_withoutpay[]" value="0">
+        <input type="hidden" name="day_A_T[]" value="0">
+        <input type="hidden" name="hour_A_T[]" value="0">
+        <input type="hidden" name="minutes_A_T[]" value="0">
+        <input type="hidden" name="times_A_T[]" value="0">
+        <input type="hidden" name="day_Under[]" value="0">
+        <input type="hidden" name="hour_Under[]" value="0">
+        <input type="hidden" name="minutes_Under[]" value="0">
+        <input type="hidden" name="times_Under[]" value="0">
+      `;
+      container.appendChild(hiddenDiv);
+    });
+
+    // Show forms container and hide initial form
+    document.getElementById("initialLeaveForm").style.display = "none";
+    document.getElementById("multiLeaveForm").style.display = "block";
+
+  } else {
+     // All mode - no editing, prepare form with all employees default data and submit immediately
+  const form = document.getElementById("multiLeaveForm");
+  selectedEmployeeIds.forEach(id => {
+    const cb = allEmployees.find(cb => cb.value === id);
+    const salary = cb.dataset.salary || "";
+    const hiddenDiv = document.createElement("div");
+    hiddenDiv.style.display = "none";
+    hiddenDiv.innerHTML = `
+      <input type="hidden" name="employee_id[]" value="${id}">
+      <input type="hidden" name="month[]" value="${selectedMonth}">
+      <input type="hidden" name="year[]" value="${selectedYear}">
+      <input type="hidden" name="date[]" value="">
+      <input type="hidden" name="monthly_salary[]" value="${salary}">
+      <input type="hidden" name="vl[]" value="0">
+      <input type="hidden" name="fl[]" value="0">
+      <input type="hidden" name="sl[]" value="0">
+      <input type="hidden" name="spl[]" value="0">
+      <input type="hidden" name="other[]" value="0">
+      <input type="hidden" name="vl_earned[]" value="1.250">
+      <input type="hidden" name="vl_absences_withpay[]" value="0">
+      <input type="hidden" name="vl_absences_withoutpay[]" value="0">
+      <input type="hidden" name="sl_earned[]" value="1.250">
+      <input type="hidden" name="sl_absences_withpay[]" value="0">
+      <input type="hidden" name="sl_absences_withoutpay[]" value="0">
+      <input type="hidden" name="day_A_T[]" value="0">
+      <input type="hidden" name="hour_A_T[]" value="0">
+      <input type="hidden" name="minutes_A_T[]" value="0">
+      <input type="hidden" name="times_A_T[]" value="0">
+      <input type="hidden" name="day_Under[]" value="0">
+      <input type="hidden" name="hour_Under[]" value="0">
+      <input type="hidden" name="minutes_Under[]" value="0">
+      <input type="hidden" name="times_Under[]" value="0">
+    `;
+    form.appendChild(hiddenDiv); // <-- Append to the actual form
+  });
+
+  document.getElementById("initialLeaveForm").style.display = "none";
+  document.getElementById("multiLeaveForm").style.display = "block";
+
+  setTimeout(() => {
+    form.submit();
+  }, 100);
+
+  }
+}
+
 </script>
 
-    
 @endsection

@@ -37,7 +37,7 @@ function Check()
     // Check if email is verified
     if ($user->emailVerified) { 
             $check_status = Employee_Account::where('email', $email)->first();
-            if ($check_status->account_status == 'approved') {
+            if ($check_status->account_status == 'Approved') {
                 return redirect('/Application-For-Leave');
             }   
         return view('emails.check');
@@ -131,7 +131,7 @@ function Landingpage()
         }
 
         $check_status = Employee_Account::where('email', $email)->first();
-        if ($check_status->account_status == 'pending') {
+        if ($check_status->account_status == 'Pending') {
             return redirect('/Check');
         }
 
@@ -503,9 +503,13 @@ public function getSalary(Request $request)
         // Check if email is verified
         if ($user->emailVerified) {
             $check_status = Employee_Account::where('email', $email)->first();
-                if ($check_status->account_status == 'pending') {
+                if ($check_status->account_status == 'Pending') {
                     return redirect('/Check');
-                } else{
+                }
+                  else if ($check_status->account_status == 'Disabled') {
+                    return view('emails.disable');
+                    }
+                     else{
              $currentYear = Carbon::now()->year;
                     $countVL = Application_leave::where('a_availed', 'Special Leave')
                       ->where('status', 'Approved')
@@ -518,8 +522,9 @@ public function getSalary(Request $request)
                    
                     $VL= 3 - $countSL;
                     $SL= 5 - $countSL;
-                  
-                        return view('employee.application_for_leave' ,compact('VL','SL'));
+                    $email = Session::get('user_email');
+                    $employee = Employee_Account::where('email', $email)->first();
+                        return view('employee.application_for_leave' ,compact('VL','SL','employee'));
                     }
         } else {
             return redirect('/Resend')->with('error', 'Please verify your email.');
@@ -543,15 +548,21 @@ public function getSalary(Request $request)
         // Check if email is verified
         if ($user->emailVerified) {
             $check_status = Employee_Account::where('email', $email)->first();
-                if ($check_status->account_status == 'pending') {
+                if ($check_status->account_status == 'Pending') {
                     return redirect('/Check');
-                } else{
+                }   else if ($check_status->account_status == 'Disabled') {
+                    return view('emails.disable');
+                    }
+                
+                else{
 
                 $history = Application_leave::where('email', $email)
                 ->orderBy('date_filing', 'desc')
                 ->get();
+                  $email = Session::get('user_email');
+                    $employee = Employee_Account::where('email', $email)->first();
 
-                        return view('employee.history', compact('history'));
+                        return view('employee.history', compact('history','employee'));
                     }
         } else {
             return redirect('/Resend')->with('error', 'Please verify your email.');
@@ -575,9 +586,13 @@ public function getSalary(Request $request)
         // Check if email is verified
         if ($user->emailVerified) {
             $check_status = Employee_Account::where('email', $email)->first();
-                if ($check_status->account_status == 'pending') {
+                if ($check_status->account_status == 'Pending') {
                     return redirect('/Check');
-                } else{
+                }
+                else if ($check_status->account_status == 'Disabled') {
+                    return view('emails.disable');
+                    }
+                else{
                     $employee = Employee_Account::where('email', $email)->first();
                     $balance  = Leave::where('employee_id', $employee->employee_id)
                     ->latest() // equivalent to orderBy('created_at', 'desc')

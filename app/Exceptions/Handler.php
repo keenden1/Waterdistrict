@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Exceptions;
-
+use Kreait\Firebase\Exception\Auth\ApiConnectionFailed;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -41,6 +41,15 @@ class Handler extends ExceptionHandler
      *
      * @return void
      */
+
+     public function render($request, Throwable $exception)
+{
+    if ($exception instanceof ApiConnectionFailed) {
+        return response()->view('errors.no-internet', [], 503);
+    }
+
+    return parent::render($request, $exception);
+}
     public function register()
     {
         $this->reportable(function (Throwable $e) {

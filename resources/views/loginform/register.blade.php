@@ -26,9 +26,9 @@
 
     <!-- Name Field -->
     <div style="display: flex; gap: 10px; align-items: center;">
-    <input type="text" name="fname" placeholder="First Name" value="{{ old('fname') }}" required>
-    <input type="text" name="mname" placeholder="Middle Name" value="{{ old('mname') }}"  maxlength="1">
-    <input type="text" name="lname" placeholder="Last Name" value="{{ old('lname') }}"  required>
+    <input type="text" name="fname" placeholder="First Name" value="{{ old('fname') }}" style="text-transform: capitalize;" required>
+    <input type="text" name="mname" placeholder="Middle Name" value="{{ old('mname') }}" style="text-transform: capitalize;">
+    <input type="text" name="lname" placeholder="Last Name" value="{{ old('lname') }}" style="text-transform: capitalize;" required>
     </div>
 
    
@@ -48,7 +48,7 @@
     @enderror
 
 
-    <input type="text" name="position" placeholder="Position" value="{{ old('position') }}" required>
+    <input type="text" name="position" placeholder="Position" value="{{ old('position') }}" style="text-transform: capitalize;" required>
     @error('position')
         <span class="text-danger">{{ $message }}</span>
     @enderror

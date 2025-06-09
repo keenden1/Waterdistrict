@@ -61,7 +61,17 @@
     </tr>
     <tr>
         <td colspan="7" style="text-align: right;"><strong>TOTAL PAYABLE CURRENT MONTH</strong></td>
-        <td>Php {{ number_format($current_month_payable, 2) }}</td>
+        @php
+    $current_month_payable = $total_leave_benefit - $previous_balance;
+    $is_negative = $current_month_payable < 0;
+    $formatted_payable = $is_negative 
+        ? '(' . number_format(abs($current_month_payable), 2) . ')' 
+        : number_format($current_month_payable, 2);
+  @endphp
+
+    <td @class(['red-text' => $is_negative])>
+        Php {{ $formatted_payable }}
+    </td>
     </tr>
 </tfoot>
 @endif
@@ -343,6 +353,9 @@ table {
         display: inline-block; /* Ensures it behaves like a dot */
         margin-right: 10px;
         }
+         .red-text {
+    color: red;
+  }
 </style>
 <script>
     function confirmAction() {

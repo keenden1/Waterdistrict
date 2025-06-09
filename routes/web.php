@@ -18,6 +18,7 @@ Route::post('/verify/resend', [Employee::class, 'resend'])->name('verification.r
 Route::post('/logout', [Employee::class, 'LogoutUser'])->name('logout');
 Route::get('/Read', [Employee::class,'Read'])->name('Read-Page');
 Route::get('/Check', [Employee::class,'Check'])->name('Check-Page');
+Route::get('/Disabled', [Employee::class,'Disabled'])->name('Disabled-Page');
 Route::get('/forgotpassword',  [Employee::class,'Forgot_password'])->name('Forgotpassword-Page');
 Route::post('/forgotpasswordform',  [Employee::class,'Forgot_password_form'])->name('Forgotpassword-Form-Page');
 
@@ -104,7 +105,7 @@ Route::get('/print_leave_credit_card/{id}/{year}', [Admin::class, 'print_leave_c
 Route::get('/samples', [Admin::class, 'samples'])->name('samples');
 
 Route::post('/leaves/store', [Admin::class, 'leave_store'])->name('leaves.store');
-
+Route::post('/leaves/store/multiple', [Admin::class, 'leave_store_multiple'])->name('leaves.store.multiple');
 
 
 Route::get('/form', function () {

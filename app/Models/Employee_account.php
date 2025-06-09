@@ -16,6 +16,7 @@ class Employee_Account extends Model
         'fname',
         'mname',
         'lname',
+        'monthly_salary',
         'position',
         'account_status',
         'role',
