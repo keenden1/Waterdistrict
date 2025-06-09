@@ -221,9 +221,9 @@
           <label class="leaveForm-label">Year</label>
           <select id="globalYear" class="leaveForm-select" required>
             <option value="" disabled selected>Select..</option>
-            @for ($y = 2000; $y <= now()->year; $y++)
-              <option value="{{ $y }}">{{ $y }}</option>
-            @endfor
+          @for ($y = now()->year; $y >= 2010; $y--)
+            <option value="{{ $y }}">{{ $y }}</option>
+          @endfor
           </select>
         </div>
       </div>

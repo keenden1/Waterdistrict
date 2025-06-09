@@ -207,7 +207,7 @@ Swal.fire({
             <option value="" disabled selected>Select..</option>
             <?php
                 $currentYear = date('Y'); // Get the current year
-                for ($i = 2000; $i <= $currentYear; $i++) {
+                for ($i = $currentYear; $i >= 2010; $i--) {
                     echo "<option value=\"$i\">$i</option>\n";
                 }
             ?>
