@@ -72,19 +72,52 @@
     <div class="modal-content">
         <span class="close-esign">&times;</span>
         <h2>Upload E-Signature</h2>
-        <form action="{{ route('profile.e_signature') }}" method="POST" enctype="multipart/form-data">
+       <div style="margin-left:20px; text-align:left;">
+    <p>We recommend using the following tools to create or clean up your signature:</p>
+        <ul style="font-size: 14px; padding-left: 20px;">
+            <li>
+                <a href="https://www.signwell.com/online-signature/" target="_blank" style="color: #007BFF;">
+                    SignWell Online Signature Tool
+                </a> - to draw your signature.
+            </li>
+            <li>
+                <a href="https://www.remove.bg/" target="_blank" style="color: #007BFF;">
+                    Remove.bg
+                </a> - to remove background from your image.
+            </li>
+        </ul>
+        <p style="font-size: 14px; margin-bottom: 10px;">
+            Make sure to download it with a <strong>transparent background</strong> (usually PNG format).
+        </p>
+    </div>
+
+      
+        <form action="{{ route('profile.e_signature') }}" method="POST" enctype="multipart/form-data" onsubmit="return validateTransparentCheckbox()">
             @csrf
             @method('PUT')
 
             <div style="margin-top: 15px; display:flex; align-items:center; justify-content:center;">
                 <img id="esignPreview" src="#" alt="E-Sign Preview" style="display:none; width: 320px; height: 120px; object-fit: contain; border: 1px solid #ccc;">
             </div>
-            <input type="file" name="e_signature" accept="image/*" onchange="previewEsign(event)" required>
+
+            <div style="text-align: left; margin-left:20px;margin-bottom:20px;">
+                 <input type="file" name="e_signature" accept="image/*" onchange="previewEsign(event)" required>
+            </div>
+           
             <input type="hidden" name="email" value="{{ $employee->email }}">
-            <button type="submit" class="save-btn" style="margin-top: 15px;">Upload</button>
+
+            <div style="margin-top: 10px;">
+                <input type="checkbox" id="transparentCheck" required>
+                <label for="transparentCheck">I confirm this signature has a transparent background.</label>
+            </div>
+            <div style="margin: 0 20px 0 20px;">
+                <button type="submit" id="esignUploadBtn" class="save-btn" style="margin-top: 15px; display: none; width:100%;">Upload</button>
+            </div>
+            
         </form>
     </div>
 </div>
+
 
 
         </div>
@@ -279,6 +312,21 @@
         fileInput.value = '';
         output.src = '#';
         output.style.display = 'none';
+    }
+
+      const transparentCheck = document.getElementById('transparentCheck');
+    const uploadBtn = document.getElementById('esignUploadBtn');
+
+    transparentCheck.addEventListener('change', () => {
+        uploadBtn.style.display = transparentCheck.checked ? 'inline-block' : 'none';
+    });
+
+    function validateTransparentCheckbox() {
+        if (!transparentCheck.checked) {
+            alert("Please confirm the signature has a transparent background.");
+            return false;
+        }
+        return true;
     }
 </script>
 

@@ -17,7 +17,7 @@
                 <i class="bx bx-terminal icon"></i>
                 <div class="card-content">
                 <p class="label">Terminal Leave</p>
-                <h2>7</h2>
+                <h2></h2>
             </div>
         </a>
         <a href="{{ url('/Admin-Employee-Account') }}" class="card" id="card-3">
@@ -31,7 +31,7 @@
                 <i class="bx bx-note icon"></i>
                 <div class="card-content">
                 <p class="label">Summary</p>
-                <h2>7</h2>
+                <h2></h2>
             </div>
         </a>
     </div>

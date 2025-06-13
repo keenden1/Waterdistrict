@@ -105,7 +105,7 @@
             <option value="Study Leave">Study Leave</option>
             <option value="10-Day VAWC Leave">10-Day VAWC Leave</option>
             <option value="Rehabilitation Leave">Rehabilitation Leave</option>
-            <option value="Special Leave Benifits for Woman">Special Leave Benifits for Woman</option>
+            <option value="Special Benifits for Women">Special Leave Benifits for Woman</option>
             <option value="Special Emergency">Special Emergency(Calamity)</option>
             <option value="Adoption Leave">Adoption Leave</option>
             <option value="Others:">Others</option>
@@ -128,7 +128,7 @@
 
         <div class="form-group" >
           <label for="detail">Details of Leave</label>
-          <select id="detail" name="detail" required>
+          <select id="detail" name="detail">
             <option value="" disabled selected>Select Details of Leave</option>
             <optgroup label="Vacation Leave">
             <option value="Within Philippines">Within Philippines</option>
@@ -136,10 +136,10 @@
             </optgroup>
             <optgroup label="Sick Leave" >
             <option value="In Hospital(Specify Illness)">In Hospital(Specify Illness)</option>
-            <option value="Out Patient">Out Patientx(Specify Illness)</option>
+            <option value="Out Patient(Specify Illness)">Out Patient(Specify Illness)</option>
             </optgroup>
             <optgroup label="Special Leave Benifits for Woman">
-            <option value="Special Benifits for Women(Specify Illness)">Special Benifits for Women</option>
+            <option value="Special Benifits for Women">Special Benifits for Women</option>
             </optgroup>
             <optgroup label="Study Leave">
             <option value="Completion of Masters Degree">Completion of Master's Degree</option>
@@ -179,17 +179,17 @@
         <div class="form-group-row" >
             <div class="form-group" id="date_filing">
               <label for="startDate">Start Date</label>
-              <input type="date" name="startDate" id="startDate" value="" placeholder="yyyy-mm-dd" required>
+              <input type="date" name="startDate" id="startDate" value="" placeholder="yyyy-mm-dd" >
             </div>
             <div class="form-group" id="date_filing_1">
               <label for="endDate">End Date</label>
-              <input type="date" name="endDate" id="endDate" value="" placeholder="yyyy-mm-dd" required>
+              <input type="date" name="endDate" id="endDate" value="" placeholder="yyyy-mm-dd" >
             </div>
         </div>
     
         <div class="form-group" >
             <label for="Commutation">Commutation</label>
-              <select id="commutation" name="commutation" required>
+              <select id="commutation" name="commutation" >
               <option value="" disabled selected>Select Leave Type</option>
               <option value="Not Requested">Not Requested</option>
               <option value="Requested">Requested</option>
@@ -216,12 +216,12 @@
         <p id="otherDetailsWrapper2"><strong>Details of Leave:</strong> <span id="previewDetail"></span></p>
         <p id="otherDetailsWrapper1"><strong>Other Purpose:</strong> <span id="previewother_purpose_detail"></span></p>
         <p id="otherDetailsWrapper3"><strong>Specify Details:</strong> <span id="previewSpecifyDetails"></span></p>
-        <p><strong>Working Days:</strong> <span  id="workingDays"></span></p>
-        <p><strong>Inclusive Dates:</strong> <span id="previewStartDate"></span> - <span id="previewEndDate"></span></p>
+        <p id="otherDetailsWrapper4"><strong>Working Days:</strong> <span  id="workingDays"></span></p>
+        <p id="otherDetailsWrapper5"><strong>Inclusive Dates:</strong> <span id="previewStartDate"></span> - <span id="previewEndDate"></span></p>
         <p><strong>Commutation:</strong> <span  id="previewcommutation"></span></p>
         <!-- Add other fields you want to preview here -->
         <div style="text-align: center;">
-            <button type="submit" class="submit-btn" id="show-only" style="display: none;">Submit</button>
+            <button type="button" class="submit-btn" id="show-only" onclick="document.getElementById('leaveForm').submit();">Submit</button>
         </div>
     </div>
 </div>
@@ -559,6 +559,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const otherPurposeGroup = document.getElementById("other_purpose_group");
     const emergencyCode = document.getElementById("emergency_code");
     const optGroups = document.querySelectorAll("#detail optgroup");
+    
 
     const excludeOptions = [
         "Monetization of Leave Credits",
@@ -575,7 +576,11 @@ document.addEventListener("DOMContentLoaded", function () {
         "Study Leave",
         "10-Day VAWC Leave",
         "Rehabilitation Leave",
-        "Adoption Leave"
+        "Adoption Leave",
+        "Others:",
+        "Special Emergency",
+        "Special Privilege Leave",
+        "Special Benifits for Women"
     ];
 //locate
     // Initial hide
@@ -605,9 +610,35 @@ document.addEventListener("DOMContentLoaded", function () {
         emergencyCode.style.display = "none";
 
         // Show Others input if "Others:" selected
-        if (selectedType === "Others:") {
-            typeOthersDetails.style.display = "inline-block";
-        }
+      // Show Other Purpose dropdown only when "Others:" is selected
+      if (selectedType === "Others:") {
+          otherPurposeGroup.style.display = "block";
+
+          // Listen to changes in 'other_purpose_detail'
+          const otherPurposeSelect = document.getElementById("other_purpose_detail");
+          const startDateInput = document.getElementById("startDate");
+          const endDateInput = document.getElementById("endDate");
+
+          otherPurposeSelect.addEventListener("change", function () {
+              const selectedPurpose = otherPurposeSelect.value;
+
+              if (selectedPurpose === "Monetization of Leave Credits" || selectedPurpose === "Terminal Leave") {
+                  // Hide start and end date
+                  dateFilingGroup.style.display = "none";
+                  dateFilingGroup_2.style.display = "none";
+                  startDateInput.style.display = "none";
+                  endDateInput.style.display = "none";
+
+              } else {
+                  // Show start and end date
+                  dateFilingGroup.style.display = "block";
+                  dateFilingGroup_2.style.display = "block";
+                  startDateInput.style.display = "block";
+                  endDateInput.style.display = "block";
+              }
+          });
+      }
+
 
         // Show Preview button if selected type matches specific ones
         if (previewTypes.includes(selectedType)) {
@@ -615,23 +646,29 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         // Also show start and end date fields for these types
     // Show Preview button if selected type matches specific ones
-      if (previewTypes.includes(selectedType)) {
-          submitButton.style.display = "inline-block";
+     if (previewTypes.includes(selectedType)) {
+    submitButton.style.display = "inline-block";
 
-          // Also show start and end date fields
-          dateFilingGroup.style.display = "block";
-          dateFilingGroup_2.style.display = "block";
-      }
-
-
+    if (selectedType !== "Others:") {
+        dateFilingGroup.style.display = "block";
+        dateFilingGroup_2.style.display = "block";
+    }
+}
 
         // Show Details group if needed
         if (
             selectedType === "Vacation Leave" ||
             selectedType === "Sick Leave" ||
-            selectedType === "Special Privilege Leave"
+            selectedType === "Special Privilege Leave" ||
+            selectedType === "Study Leave"
+            
         ) {
             detailGroup.style.display = "block";
+        }
+         if (
+          selectedType === "Special Benifits for Women" 
+        ) {
+            specify_details.style.display = "inline-block";
         }
 
         // Show "Other Purpose"
@@ -718,7 +755,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const leaveAdvanceDays = {
         "Vacation Leave": 5,
-        "Mandatory/Forced Leave": 1,
+        "Mandatory/Forced Leave": 5,
         "Sick Leave": 5,
         "Maternity Leave": 1,
         "Paternity Leave": 1,
@@ -727,17 +764,24 @@ document.addEventListener("DOMContentLoaded", function () {
         "Study Leave": 1,
         "10-Day VAWC Leave": 1,
         "Rehabilitation Leave": 7,
-        "Special Leave Benifits for Woman": 5,
+        "Special Benifits for Woman": 5,
         "Special Emergency": 5,
         "Adoption Leave": 1
     };
 
+    const disableWeekends = [
+    function(date) {
+        // return true to disable
+        return (date.getDay() === 0 || date.getDay() === 6); // Sunday (0) or Saturday (6)
+    }
+];
    const startDatePicker = flatpickr(startDateInput, {
     dateFormat: "Y-m-d",
     minDate: "today",
     defaultDate: null,
+    disable: disableWeekends,
     onChange: function(selectedDates, dateStr) {
-        startDateInput.required = true;
+        startDateInput.required = false;
 
         if (selectedDates.length > 0) {
             const selectedStart = selectedDates[0];
@@ -755,9 +799,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const endDatePicker = flatpickr(endDateInput, {
         dateFormat: "Y-m-d",
         minDate: "today",
+          disable: disableWeekends,
         defaultDate: null,
         onChange: function(selectedDates, dateStr) {
-            endDateInput.required = true;
+            endDateInput.false = true;
         }
     });
 
@@ -873,6 +918,8 @@ function previewForm() {
     const otherDetailsWrapper3 = document.getElementById('otherDetailsWrapper3');
     otherDetailsWrapper3.style.display = specify_details !== '------' ? 'block' : 'none';
 
+
+
     // Function to calculate working days between two dates
     function calculateWorkingDays(start, end) {
         let startDate = new Date(start);
@@ -894,6 +941,15 @@ function previewForm() {
     if (rawStartDate && rawEndDate) {
         workingDays = calculateWorkingDays(rawStartDate, rawEndDate) + ' day/s';
     }
+
+    
+    const otherDetailsWrapper4 = document.getElementById('otherDetailsWrapper4');
+    otherDetailsWrapper4.style.display = workingDays !== '------' ? 'block' : 'none';
+
+    const otherDetailsWrapper5 = document.getElementById('otherDetailsWrapper5');
+    otherDetailsWrapper5.style.display = workingDays !== '------' ? 'block' : 'none';
+
+
 
     // Populate preview modal
     document.getElementById('previewDepartment').innerText = department;
@@ -917,23 +973,29 @@ function previewForm() {
     "Study Leave",
     "10-Day VAWC Leave",
     "Rehabilitation Leave",
-    "Adoption Leave"
+    "Adoption Leave",
+    "Special Benifits for Women",
 ];
 
 // Check form requirements
-const isBasicValid = department !== '------' && salary !== '------' && rawStartDate !== '' && rawEndDate !== '';
-const isFullyValid = isBasicValid && detail !== '------';
+  const typeTrimmed = type.trim(); // ✅ Define this first
 
-// Show or hide the Submit button
-const submitButton = document.getElementById('show-only');
-if (isFullyValid || (forcedTypes.includes(type) && isBasicValid)) {
-    submitButton.style.display = 'inline-block';
-} else {
-    submitButton.style.display = 'none';
-}
-    // Show the modal
-    document.getElementById('previewModal').style.display = 'block';
-}
+  const isBasicValid = department !== '------' && salary !== '------' && rawStartDate !== '' && rawEndDate !== '';
+  const isFullyValid = isBasicValid && detail !== '------';
+  const isOthersValid = typeTrimmed === "Others:" && other_purpose_detail !== '------' && department !== '------' && salary !== '------';
+
+    const submitButton = document.getElementById('show-only');
+
+    if (isFullyValid || isOthersValid || (forcedTypes.includes(typeTrimmed) && isBasicValid)) {
+        submitButton.style.display = 'inline-block';
+    } else {
+        submitButton.style.display = 'none';
+    }
+
+
+      // Show the modal
+      document.getElementById('previewModal').style.display = 'block';
+  }
 
 function closePreview() {
     document.getElementById('previewModal').style.display = 'none';

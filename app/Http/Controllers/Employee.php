@@ -21,6 +21,8 @@ use Kreait\Firebase\Exception\AuthException;
 use Kreait\Firebase\Exception\Auth\UserNotFound;
 use Carbon\Carbon;
 use Complex\Complex;
+use Carbon\CarbonPeriod;
+
 
 class Employee extends Controller
 {
@@ -242,6 +244,12 @@ function Landingpage()
             'email' => 'required|email',
         ]);
     
+         $email = Employee_Account::where('email', $request->email)->first();
+        
+        if($email->role == 'admin'){
+            return redirect()->back()->with('error', 'An error occurred. Employee Only.');
+        }
+
         try {
             // Get the Firebase Auth instance
             $firebaseAuth = app('firebase.auth'); // This returns the instance of the Firebase Auth service.
@@ -406,66 +414,75 @@ public function resend(Request $request)
 
 
 /***********************************************************************************************************/
-
 public function application_leave_form(Request $request)
-    {
-        
-        $validated = $request->validate([
-            'department' => 'required|string|max:255',
-            'salary_grade' => 'required|integer',
-            'step_grade' => 'required|integer',
-            'salary' => 'required|string', 
-            'fullname' => 'required|string', 
-            'commutation' => 'required|string', 
-            'email' => 'required|string', 
-            'type' => 'required|string',
-            'Others_details' => 'nullable|string|max:255',
-            'detail' => 'required|string',
-            'specify_details' => 'nullable|string|max:255',
-            'startDate' => 'required|date',
-            'endDate' => 'required|date',
-        ], [
-            'startDate.required' => 'The Start Date need to Fill-up!',
-            'endDate.required' => 'The End Date need to Fill-up!',
-        ]);
+{
+    $validated = $request->validate([
+        'department' => 'required|string|max:255',
+        'salary_grade' => 'required|integer',
+        'step_grade' => 'required|integer',
+        'salary' => 'required|string',
+        'fullname' => 'required|string',
+        'commutation' => 'required|string',
+        'email' => 'required|string',
+        'type' => 'required|string',
+        'Others_details' => 'nullable|string|max:255',
+        'detail' => 'nullable|string',
+        'specify_details' => 'nullable|string|max:255',
+        'other_purpose_detail' => 'nullable|string|max:255',
+        'startDate' => 'nullable|date',
+        'endDate' => 'nullable|date',
+    ]);
 
-        $start = Carbon::parse($validated['startDate']);
-        $end = Carbon::parse($validated['endDate']);
-        $days = $start->diffInDays($end) + 1;
+    $startDate = $validated['startDate'] ?? null;
+    $endDate = $validated['endDate'] ?? null;
+    $days = null;
+    $inclusiveDates = null;
 
-        $employee = Employee_Account::where('email', $validated['email'])->first();
-        $position =  $employee->position;
+    if ($startDate && $endDate) {
+        $start = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
 
-        Application_leave::create([
-            'officer_department' => $validated['department'],
-            'fullname' => $validated['fullname'],
-            'email' => $validated['email'],
-            'date_filing' => now(),
-            'salary_grade' => $validated['salary_grade'],
-            'step_grade' => $validated['step_grade'],
-            'salary' => $validated['salary'],
-            'position' => $position,
+        // Create date period and count only weekdays
+        $period = CarbonPeriod::create($start, $end);
+        $days = collect($period)->filter(function ($date) {
+            return !$date->isWeekend(); // Only weekdays
+        })->count();
 
-            'a_availed' => $validated['type'],
-            'a_availed_others' => $validated['Others_details'] ?? null,
-
-            'b_details' => $validated['detail'] ?? null,
-            'b_details_specify' => $validated['specify_details'] ?? null,
-            'status' => 'Pending',
-            'd_commutation' => $validated['commutation'] ?? null,
-            'c_working_days' =>  $days,
-            'c_inclusive_dates' => $validated['startDate'] .'/'. $validated['endDate'],
-            'start_date' => $validated['startDate'],
-            'end_date' => $validated['endDate'],
-        ]);
-
-        // $email = 'vincentmahipus.bsit.ucu@gmail.com';
-        // $displayName = 'sample';
-        // Mail::to($email)->send(new Notification_Message($displayName));
-
-        // Return a success message or redirect the user
-        return redirect()->back()->with('success', 'Leave Application Submitted Successfully');
+        $inclusiveDates = $startDate . '/' . $endDate;
     }
+
+    $employee = Employee_Account::where('email', $validated['email'])->first();
+    $position = $employee->position;
+
+    $sample = Application_leave::create([
+        'officer_department' => $validated['department'],
+        'fullname' => $validated['fullname'],
+        'email' => $validated['email'],
+        'date_filing' => now(),
+        'salary_grade' => $validated['salary_grade'],
+        'step_grade' => $validated['step_grade'],
+        'salary' => $validated['salary'],
+        'position' => $position,
+
+        'a_availed' => $validated['type'],
+        'a_availed_others' => $validated['Others_details'] ?? null,
+
+        'b_details' => $validated['detail'] ?? null,
+        'b_details_specify' => $validated['specify_details'] ?? null,
+        'b_other_purpose_detail' => $validated['other_purpose_detail'] ?? null,
+        'status' => 'Pending',
+        'd_commutation' => $validated['commutation'] ?? null,
+        
+        
+        'c_working_days' => $days,
+        'c_inclusive_dates' => $inclusiveDates,
+        'startDate' => $startDate,
+        'endDate' => $endDate,
+    ]);
+
+
+    return redirect()->back()->with('success', 'Leave Application Submitted Successfully');
+}
 
 public function getSalary(Request $request)
 {

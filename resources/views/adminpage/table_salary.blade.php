@@ -36,7 +36,15 @@
             >X</button>
 </div>
 <table>
-<caption>Second Tranche Monthly Salary Schedule for Civilian Personnel of the National Government Effective January 1,2025 (in Pesos)</caption>
+ <caption id="editable-caption" contenteditable="true">
+    Second Tranche Monthly Salary Schedule for Civilian Personnel of the National Government Effective (Date) (in Pesos)
+  </caption>
+  <thead>
+    <tr>
+      <button onclick="saveCaption()" class="button-container">💾 Save Caption</button>
+      <button onclick="resetCaption()" class="button-container">↩ Reset</button>
+    </tr>
+  </thead>
 	<thead>
       <tr>
         <th style="text-align: center;vertical-align: middle;"><button href="" popovertarget="myPopover" class="btn2"><i class='bx bx-plus'>ADD</i></button></th>
@@ -496,6 +504,25 @@ caption {
         text-overflow: ellipsis;
     }
 }
+ caption[contenteditable="true"]:focus {
+      background-color: #fffbe6;
+      border-color: #f0ad4e;
+    }
+
+
+    .button-container {
+      padding: 6px 12px;
+      margin-left: 5px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .button-container:hover {
+      background-color: #0056b3;
+    }
 </style>
 <script>
     document.getElementById("closeModal").addEventListener("click", function() {
@@ -549,5 +576,24 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 </script>
+<script>
+  const caption = document.getElementById("editable-caption");
 
+  // Load caption from localStorage on page load
+  window.onload = () => {
+    const saved = localStorage.getItem("salaryTableCaption");
+    if (saved) caption.textContent = saved;
+  };
+
+  function saveCaption() {
+    const text = caption.textContent.trim();
+    localStorage.setItem("salaryTableCaption", text);
+    alert("Caption saved locally!");
+  }
+
+  function resetCaption() {
+    localStorage.removeItem("salaryTableCaption");
+    location.reload(); // reloads to show default
+  }
+</script>
 @endsection

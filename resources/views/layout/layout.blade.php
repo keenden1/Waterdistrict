@@ -33,6 +33,10 @@
 
       <img src="{{ asset('logo/logo.png') }}" alt="prof_image">
         <p>{{ session('fullname') }}<br> <span>{{ session('user_email') }}</span></p>
+        @if (!session('fullname') || !session('user_email'))
+          <script>window.location.href = '/Admin';</script>
+          @php exit; @endphp
+        @endif
     </div>
   </header>
   <!--Header-->

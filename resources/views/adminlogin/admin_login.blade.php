@@ -59,7 +59,7 @@
     </p>
 @endif
 
-        <p class="forgot-password-text"><a href="#">Forgot Password?</a></p>
+        <p class="forgot-password-text"><a href="{{ url('/Admin-Change-Password') }}">Forgot Password?</a></p>
     </div>
 </div>
 <!-- <a href="{{ route('logout') }}" class="btn btn-danger"

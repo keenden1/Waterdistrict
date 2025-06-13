@@ -33,7 +33,11 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
-
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use PhpOffice\PhpSpreadsheet\RichText\Run;
+use DateTime;
+use Kreait\Firebase\Exception\AuthException;
+use Kreait\Firebase\Exception\Auth\UserNotFound;
 
 class Admin extends Controller
 {
@@ -51,7 +55,7 @@ public function Input($id) {
        ->orderByRaw('CAST(month AS UNSIGNED) ASC')
        ->get();
 
-    $Account = Employee_Account::where('employee_id', $id)        ->first();
+    $Account = Employee_Account::where('employee_id', $id)->first();
 
     $employee_id_new = $id;
 
@@ -674,6 +678,15 @@ public function exportUsers($id)
 {
     $application = Application_leave::find($id);
     $account = Employee_Account::where('email', $application->email)->first();
+    $lastLeave = Leave::where('employee_id', $account->employee_id)
+        ->orderByDesc('year')
+        ->orderByDesc('month')
+        ->first();
+
+    $vlBalance = $lastLeave ? $lastLeave->vl_balance: 0;
+    $slBalance = $lastLeave ? $lastLeave->sl_balance: 0;
+   
+    
 
     $fullname = ucfirst(strtolower($account->lname)) . ', ' . ucfirst(strtolower($account->fname));
     if (!empty($account->mname)) {
@@ -685,9 +698,22 @@ public function exportUsers($id)
     $spreadsheet = IOFactory::load($templatePath);
     $sheet = $spreadsheet->getActiveSheet();
 
+    $sheet->getStyle('D56')
+    ->getNumberFormat()
+    ->setFormatCode('0.000');
+
+     $sheet->getStyle('E56')
+    ->getNumberFormat()
+    ->setFormatCode('0.000');
+
+    $sheet->setCellValue('D56', number_format($vlBalance, 3, '.', ''));
+    $sheet->setCellValue('E56', number_format($slBalance, 3, '.', ''));
+   
     // Set cell values (adjust cell references to match your template)
     $sheet->setCellValue('B5', $application->officer_department);
     $sheet->setCellValue('E5', $fullname);
+
+      
 
     $position = $application->position;
     $salary = 'SG' . $application->salary_grade . '-' . $application->step_grade;
@@ -705,7 +731,7 @@ public function exportUsers($id)
     $line1 = "3.   DATE OF FILING  $formatteddate_filing";
 
     $sheet->setCellValue('A6', $line1);
-    $sheet->setCellValue('I62', $application->reason);
+   
 
     // Checkboxes (✔ for selected leave type)
     $leaveCells = [
@@ -719,7 +745,7 @@ public function exportUsers($id)
         'Study Leave' => 'B25',
         '10-Day VAWC Leave' => 'B27',
         'Rehabilitation Leave' => 'B29',
-        'Special Leave Benifits for Woman' => 'B31',
+        'Special Benifits for Women' => 'B31',
         'Special Emergency' => 'B33',
         'Adoption Leave' => 'B35',
     ];
@@ -727,58 +753,145 @@ public function exportUsers($id)
     foreach ($leaveCells as $type => $cell) {
         $sheet->setCellValue($cell, $application->a_availed == $type ? '✔' : '');
     }
+$leaveCell1 = [
+    'Within Philippines' => ['check' => 'H13', 'label' => 'I13'],
+    'Abroad' => ['check' => 'H15', 'label' => 'I15'],
+    'In Hospital(Specify Illness)' => ['check' => 'H19', 'label' => 'I19'],
+    'Out Patient(Specify Illness)' => ['check' => 'H21', 'label' => 'I21'],
+];
 
+foreach ($leaveCell1 as $type => $cells) {
+    $isSelected = ($application->b_details == $type);
+
+    // Set checkmark only for the selected type
+    $sheet->setCellValue($cells['check'], $isSelected ? '✔' : '');
+
+    // Build the label
+    if ($isSelected && !empty(trim($application->b_details_specify))) {
+        $fullText = $type . ': _____' . trim($application->b_details_specify) . '_____';
+    } else {
+        $fullText = $type . ': ______________________';
+    }
+
+    // Set the label cell
+    $sheet->setCellValue($cells['label'], $fullText);
+}
+
+ 
+
+    $start = new DateTime($application->startDate);
+    $end = new DateTime($application->endDate);
+
+    $days = 0;
+    while ($start <= $end) {
+        // 1 = Monday, 7 = Sunday
+        if ($start->format('N') < 6) {
+            $days++;
+        }
+        $start->modify('+1 day');
+    }
+
+    // Save to Excel
+    $sheet->setCellValue('C45', $days . ' day/s');
+
+   if ($application->a_availed === 'Vacation Leave' || $application->a_availed === 'Mandatory/Forced Leave') {
+            $less_vl_used = $days;
+            $less_vsl_used = '-';
+        } elseif ($application->a_availed === 'Sick Leave') {
+            $less_vl_used = '-';
+            $less_vsl_used = $days;
+        } else {
+            $less_vl_used = '-';
+            $less_vsl_used = '-';
+        }
+
+
+    $sheet->setCellValue('D57', $less_vl_used );
+    $sheet->setCellValue('E57', $less_vsl_used );
+
+
+    $sheet->setCellValue('C48', $application->c_inclusive_dates);
+
+    $datelastmonth = \Carbon\Carbon::now()->subMonth()->endOfMonth()->format('d F, Y');
+    $sheet->setCellValue('C53', 'As of '. $datelastmonth);
 
     // Others
     if ($application->a_availed == 'Others:') {
         $sheet->setCellValue('B41', $application->a_availed_others); 
     }
 
+    $sheet->setCellValue('H39', $application->b_other_purpose_detail == 'Monetization of Leave Credits' ? '✔' : '');
+    $sheet->setCellValue('H41', $application->b_other_purpose_detail == 'Terminal Leave' ? '✔' : '');
+    if($application->a_availed == 'Others:'){
+      $sheet->setCellValue('B41', $application->b_other_purpose_detail );
+    }
+
+    $sheet->setCellValue('H33', $application->b_details == 'Completion of Masters Degree' ? '✔' : '');
+    $sheet->setCellValue('H35', $application->b_details == 'BAR/Board Examination Review' ? '✔' : '');
+    
+    $sheet->setCellValue('H53', $application->status == 'Approved' ? '✔' : '');
+    $sheet->setCellValue('H55', $application->status == 'Declined' ? '✔' : '');
+
+    $reason =  $application->reason ?? '';
+
+        if (strlen($reason) > 50) {
+            $sheet->setCellValue('I56', substr($reason, 0, 50)); // First 50 chars
+            $sheet->setCellValue('I57', substr($reason, 50));     // Rest
+        } else {
+            $sheet->setCellValue('I56', $reason);
+            $sheet->setCellValue('I57', ''); // Clear extra line if previously filled
+        }
+
+
+    
+    
+
+    $sheet->setCellValue('I29', $application->a_availed == 'Special Benifits for Women' ? '_____'.$application->b_details_specify.'_____' : '');
     // Commutation Requested
     $sheet->setCellValue('H45', $application->d_commutation == 'Requested' ? '✔' : '');
     $sheet->setCellValue('H47', $application->d_commutation == 'Not Requested' ? '✔' : '');
 
-    // Insert signature image if available
-  if ($account->e_signature && file_exists(public_path($account->e_signature))) {
+ // Insert signature image if available
+if ($account->e_signature && file_exists(public_path($account->e_signature))) {
     $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
     $drawing->setName('Signature');
     $drawing->setDescription('Employee Signature');
     $drawing->setPath(public_path($account->e_signature));
-    $drawing->setHeight(80);
-    $drawing->setCoordinates('C59');
+    $drawing->setHeight(80); // You can adjust this if needed
+    $drawing->setCoordinates('I47');
 
-    // Calculate total width of merged columns (C to E)
-    $colWidths = 0;
-    foreach (['C', 'D', 'E'] as $col) {
-        $colWidths += $sheet->getColumnDimension($col)->getWidth();
-    }
+    // Get column I width in pixels
+    $colWidth = $sheet->getColumnDimension('I')->getWidth(); // default ~8.43 units
+    $mergedWidthPx = $colWidth * 7.5; // approx conversion to pixels
 
-    // Convert Excel column width to pixels (approx 7.5 px per unit)
-    $mergedWidthPx = $colWidths * 7.5;
+    // Get actual image width
     $imageWidthPx = $drawing->getWidth();
 
-    // Calculate horizontal offset to center image with 4px margin left/right
-    $offsetX = (($mergedWidthPx - 8) - $imageWidthPx) / 2 + 4; // subtract 8px total margin, add left 4px margin
+    // Calculate horizontal offset to center image with 4px side margin
+    $offsetX = (($mergedWidthPx - 8) - $imageWidthPx) / 2 + 4; // subtract 8px margin, add 4px padding
     if ($offsetX < 0) $offsetX = 0;
 
-    // Get row height in points (default ~15 pts)
-    $rowHeightPts = $sheet->getRowDimension(59)->getRowHeight();
+    // Get row height (row 47)
+    $rowHeightPts = $sheet->getRowDimension(47)->getRowHeight();
     if (!$rowHeightPts) {
-        $rowHeightPts = 15; // default row height
+        $rowHeightPts = 15; // fallback default height
     }
-    // Convert points to pixels (~1 pt = 1.33 px)
-    $rowHeightPx = $rowHeightPts * 1.33;
 
+    // Convert row height to pixels (1pt ≈ 1.33px)
+    $rowHeightPx = $rowHeightPts * 1.33;
     $imageHeightPx = $drawing->getHeight();
-    // Calculate vertical offset to center image with 4px margin top/bottom
-    $offsetY = (($rowHeightPx - 8) - $imageHeightPx) / 2 + 4; // subtract 8px total margin, add top 4px margin
+
+    // Calculate vertical offset to center the image
+    $offsetY = (($rowHeightPx - 8) - $imageHeightPx) / 2 + 4;
     if ($offsetY < 0) $offsetY = 0;
 
     $drawing->setOffsetX($offsetX);
     $drawing->setOffsetY($offsetY);
 
+    // Attach image to the worksheet
     $drawing->setWorksheet($sheet);
 }
+
 
 
     // Save and download
@@ -1031,15 +1144,30 @@ public function changePassword(Request $request)
         return view('adminpage.newimprovedashboard', compact('leave','countleave','countemployee'));
     }
     function Admin_Application_Leave(){
+        $email = Session::get('user_email');
+
+        if (!$email) {
+            return redirect('/Admin')->with('error', 'You need to log in first.');
+        }
         $leave = Application_leave::orderBy('date_filing', 'desc')->get();
         return view('adminpage.applicationleave', compact('leave'));
     }
   function Admin_Employee_Account() {
+    $email = Session::get('user_email');
+
+        if (!$email) {
+            return redirect('/Admin')->with('error', 'You need to log in first.');
+        }
     $employees = Employee_Account::where('role', 'user')->get();
     return view('adminpage.employeeaccount', compact('employees'));
 }
 
     function Admin_Leave_Credit_Card(){
+        $email = Session::get('user_email');
+
+        if (!$email) {
+            return redirect('/Admin')->with('error', 'You need to log in first.');
+        }
      $employees = Employee_Account::where('account_status', '!=', 'Pending')
     ->where('role', 'user')
     ->get();
@@ -1048,6 +1176,11 @@ public function changePassword(Request $request)
     }
 
 function Admin_Leave_Credit_Card_Generate(Request $request){
+    $email = Session::get('user_email');
+
+        if (!$email) {
+            return redirect('/Admin')->with('error', 'You need to log in first.');
+        }
     $request->validate([
         'employee' => 'required',
         'year' => 'required|numeric',
@@ -1177,6 +1310,11 @@ function Admin_Leave_Credit_Card_Generate(Request $request){
 }
 
     function Admin_Summary(){
+        $email = Session::get('user_email');
+
+        if (!$email) {
+            return redirect('/Admin')->with('error', 'You need to log in first.');
+        }
         return view('adminpage.formsummary');
     }
 
@@ -1395,6 +1533,11 @@ foreach ($late as $index => $item) {
      
     
     function Admin_Terminal_Leave(){
+        $email = Session::get('user_email');
+
+        if (!$email) {
+            return redirect('/Admin')->with('error', 'You need to log in first.');
+        }
         return view('adminpage.formterminal');
     }
 
@@ -1607,9 +1750,19 @@ foreach ($leaves as $index => $item) {
 
 
     function Admin_Control_Panel(){
+        $email = Session::get('user_email');
+
+        if (!$email) {
+            return redirect('/Admin')->with('error', 'You need to log in first.');
+        }
         return view('adminpage.control_panel');
     }
     function Salary(){
+        $email = Session::get('user_email');
+
+        if (!$email) {
+            return redirect('/Admin')->with('error', 'You need to log in first.');
+        }
     $salary = Salary::orderBy('salary_grade', 'asc')->get();
     return view('adminpage.table_salary', compact('salary'));
     }
@@ -1720,5 +1873,47 @@ function Rate(){
     return view('adminpage.earnedhour', compact('work'));
     }
 
+   function Admin_Change_Password(){
+     return view('adminlogin.admin_change');
+   }
 
+  public function Admin_Forgot_password_form(Request $request)
+    {
+        // Validate the email input
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+        $email = Employee_Account::where('email', $request->email)->first();
+        
+        if($email->role == 'user'){
+            return redirect()->back()->with('error', 'An error occurred. Admin Only.');
+        }
+    
+        try {
+            // Get the Firebase Auth instance
+            $firebaseAuth = app('firebase.auth'); // This returns the instance of the Firebase Auth service.
+    
+            // Check if the email exists in Firebase Auth
+            try {
+                $user = $firebaseAuth->getUserByEmail($request->email); // This will throw an exception if user is not found
+            } catch (UserNotFound $e) {
+                // If the user is not found, return with an error message
+                return redirect()->back()->with('error', 'Email is not registered.');
+            }
+    
+            // Send the password reset email using Firebase
+            $firebaseAuth->sendPasswordResetLink($request->email);
+    
+            // Return success message
+            return redirect()->back()->with('success', 'Password reset email has been sent!');
+        } catch (AuthException $e) {
+            // Handle Firebase authentication errors (e.g., invalid email format)
+            Log::error('Password reset failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Could not send password reset email. Please check the email address and try again.');
+        } catch (Exception $e) {
+            // Handle other unexpected errors
+            Log::error('General error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'An error occurred. Please try again later.');
+        }
+    }
 }

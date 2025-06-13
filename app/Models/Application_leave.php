@@ -22,6 +22,7 @@ class Application_leave extends Model
         'a_availed_others',
         'b_details',
         'b_details_specify',
+        'b_other_purpose_detail',
         'c_working_days',
         'c_inclusive_dates',
         'd_commutation',
@@ -31,6 +32,8 @@ class Application_leave extends Model
         'seven_d_disapproved',
         'status',
         'reason',
+        'startDate',
+        'endDate',
     ];
 
 }

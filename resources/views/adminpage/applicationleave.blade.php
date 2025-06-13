@@ -93,10 +93,10 @@
                   <span style="padding-left: 2em;">{{ $application->a_availed_others }}</span>
               </div>
             @endif
-
+            @if($application->b_details)
             <div class="row"><span class="label">Details of Leave:</span></div>
             <div class="row"> <span style="padding-left: 2em;">{{ $application->b_details }}</span></div>
-
+            @endif
            
             @if($application->b_details_specify)
             <div class="row"><span class="label">Specify:</span></div>
@@ -104,12 +104,19 @@
                   <span style="padding-left: 2em;">{{ $application->b_details_specify }}</span>
               </div>
             @endif
+
+            @if($application->c_working_days)
             <div class="row"><span class="label">Working Days Applied:</span></div>
             <div class="row"> <span style="padding-left: 2em;">{{ $application->c_working_days }}</span></div>
+            @endif
+            @if($application->c_inclusive_dates)
             <div class="row"><span class="label">Inclusive Dates:</span></div>
             <div class="row"> <span style="padding-left: 2em;">{{ $application->c_inclusive_dates }}</span></div>
+            @endif
+            @if($application->d_commutation)
             <div class="row"><span class="label">Commutation:</span></div>
             <div class="row"> <span style="padding-left: 2em;">{{ $application->d_commutation }}</span></div>
+            @endif
           </div>
 
           @if ($application->status == 'Pending')
