@@ -244,6 +244,12 @@ function Landingpage()
             'email' => 'required|email',
         ]);
     
+         $email = Employee_Account::where('email', $request->email)->first();
+        
+        if($email->role == 'admin'){
+            return redirect()->back()->with('error', 'An error occurred. Employee Only.');
+        }
+
         try {
             // Get the Firebase Auth instance
             $firebaseAuth = app('firebase.auth'); // This returns the instance of the Firebase Auth service.

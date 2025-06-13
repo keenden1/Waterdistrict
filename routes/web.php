@@ -44,6 +44,8 @@ Route::post('/logout-admin', [Admin::class, 'LogoutAdmin'])->name('logout-admin'
 Route::post('/Admin-Login', [Admin::class, 'Admin_Login'])->name('Admin-Login');
 Route::post('/Register-Admin', [Admin::class, 'registerAdmin'])->name('Register-Admin-Post');
 Route::get('/Admin-Dashboard', [Admin::class,'Admin_Dashboard'])->name('Admin-Dashboard-page');
+Route::post('/Admin_forgotpasswordform',  [Admin::class,'Admin_Forgot_password_form'])->name('Admin-Forgotpassword-Form-Page');
+Route::get('/Admin-Change-Password', [Admin::class,'Admin_Change_Password'])->name('Admin-Change-Password-Pages');
 
 Route::post('/change-password', [Admin::class, 'changePassword'])->name('change-password');
 
