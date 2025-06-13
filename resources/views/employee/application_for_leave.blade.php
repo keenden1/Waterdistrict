@@ -105,7 +105,7 @@
             <option value="Study Leave">Study Leave</option>
             <option value="10-Day VAWC Leave">10-Day VAWC Leave</option>
             <option value="Rehabilitation Leave">Rehabilitation Leave</option>
-            <option value="Special Leave Benifits for Woman">Special Leave Benifits for Woman</option>
+            <option value="Special Benifits for Women">Special Leave Benifits for Woman</option>
             <option value="Special Emergency">Special Emergency(Calamity)</option>
             <option value="Adoption Leave">Adoption Leave</option>
             <option value="Others:">Others</option>
@@ -136,10 +136,10 @@
             </optgroup>
             <optgroup label="Sick Leave" >
             <option value="In Hospital(Specify Illness)">In Hospital(Specify Illness)</option>
-            <option value="Out Patient">Out Patientx(Specify Illness)</option>
+            <option value="Out Patient(Specify Illness)">Out Patient(Specify Illness)</option>
             </optgroup>
             <optgroup label="Special Leave Benifits for Woman">
-            <option value="Special Benifits for Women(Specify Illness)">Special Benifits for Women</option>
+            <option value="Special Benifits for Women">Special Benifits for Women</option>
             </optgroup>
             <optgroup label="Study Leave">
             <option value="Completion of Masters Degree">Completion of Master's Degree</option>
@@ -580,7 +580,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "Others:",
         "Special Emergency",
         "Special Privilege Leave",
-        "Special Benifits for Women(Specify Illness)"
+        "Special Benifits for Women"
     ];
 //locate
     // Initial hide
@@ -655,16 +655,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 }
 
-
-
-
         // Show Details group if needed
         if (
             selectedType === "Vacation Leave" ||
             selectedType === "Sick Leave" ||
-            selectedType === "Special Privilege Leave"
+            selectedType === "Special Privilege Leave" ||
+            selectedType === "Study Leave"
+            
         ) {
             detailGroup.style.display = "block";
+        }
+         if (
+          selectedType === "Special Benifits for Women" 
+        ) {
+            specify_details.style.display = "inline-block";
         }
 
         // Show "Other Purpose"
@@ -760,7 +764,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "Study Leave": 1,
         "10-Day VAWC Leave": 1,
         "Rehabilitation Leave": 7,
-        "Special Leave Benifits for Woman": 5,
+        "Special Benifits for Woman": 5,
         "Special Emergency": 5,
         "Adoption Leave": 1
     };
@@ -970,6 +974,7 @@ function previewForm() {
     "10-Day VAWC Leave",
     "Rehabilitation Leave",
     "Adoption Leave",
+    "Special Benifits for Women",
 ];
 
 // Check form requirements

@@ -72,19 +72,30 @@
     <div class="modal-content">
         <span class="close-esign">&times;</span>
         <h2>Upload E-Signature</h2>
-        <form action="{{ route('profile.e_signature') }}" method="POST" enctype="multipart/form-data">
+        <p>We recommend using <a href="https://www.signwell.com/online-signature/" target="_blank" style="color: #007BFF;">SignWell Online Signature Tool</a>.</p>
+        <p style="font-size: 14px; margin-bottom: 10px;">Make sure to download it with a <strong>transparent background</strong> (usually PNG format).</p>
+
+        <form action="{{ route('profile.e_signature') }}" method="POST" enctype="multipart/form-data" onsubmit="return validateTransparentCheckbox()">
             @csrf
             @method('PUT')
 
             <div style="margin-top: 15px; display:flex; align-items:center; justify-content:center;">
                 <img id="esignPreview" src="#" alt="E-Sign Preview" style="display:none; width: 320px; height: 120px; object-fit: contain; border: 1px solid #ccc;">
             </div>
+
             <input type="file" name="e_signature" accept="image/*" onchange="previewEsign(event)" required>
             <input type="hidden" name="email" value="{{ $employee->email }}">
+
+            <div style="margin-top: 10px;">
+                <input type="checkbox" id="transparentCheck" required>
+                <label for="transparentCheck">I confirm this signature has a transparent background.</label>
+            </div>
+
             <button type="submit" class="save-btn" style="margin-top: 15px;">Upload</button>
         </form>
     </div>
 </div>
+
 
 
         </div>
@@ -197,8 +208,8 @@
     cursor: pointer;
 }
 
-</style>
-<script>
+</style><script>
+    // Modal Elements
     const profileModal = document.getElementById('editProfileModal');
     const profileBtn = document.getElementById('editProfileBtn');
     const profileClose = document.querySelector('.close');
@@ -206,80 +217,80 @@
     const eSignModal = document.getElementById('eSignModal');
     const eSignBtn = document.getElementById('eSignBtn');
     const eSignClose = document.querySelector('.close-esign');
+    const transparentCheck = document.getElementById('transparentCheck');
+    const uploadBtn = document.querySelector('.save-btn');
 
-    // Profile modal logic
+    // Open Modals
     profileBtn.onclick = () => profileModal.style.display = 'block';
-    profileClose.onclick = () => {
-        profileModal.style.display = 'none';
-        clearPreview();
-    };
-
-    // E-sign modal logic
     eSignBtn.onclick = () => eSignModal.style.display = 'block';
-    eSignClose.onclick = () => {
-        eSignModal.style.display = 'none';
-        clearEsignPreview();
+
+    // Close Modals
+    profileClose.onclick = () => closeModal(profileModal, clearPreview);
+    eSignClose.onclick = () => closeModal(eSignModal, clearEsignPreview);
+
+    // Close on outside click
+    window.onclick = function (event) {
+        if (event.target === profileModal) closeModal(profileModal, clearPreview);
+        if (event.target === eSignModal) closeModal(eSignModal, clearEsignPreview);
     };
 
-    // Click outside to close
-    window.onclick = function(event) {
-        if (event.target == profileModal) {
-            profileModal.style.display = 'none';
-            clearPreview();
-        }
-        if (event.target == eSignModal) {
-            eSignModal.style.display = 'none';
-            clearEsignPreview();
-        }
+    function closeModal(modal, clearFn) {
+        modal.style.display = 'none';
+        clearFn();
     }
 
+    // Image Preview Functions
     function previewImage(event) {
-        const fileInput = event.target;
-        const output = document.getElementById('profilePreview');
-        if (fileInput.files && fileInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                output.src = reader.result;
-                output.style.display = 'block';
-            };
-            reader.readAsDataURL(fileInput.files[0]);
-        } else {
-            output.src = '#';
-            output.style.display = 'none';
-        }
-    }
-
-    function clearPreview() {
-        const fileInput = document.querySelector('input[name="profile_picture"]');
-        const output = document.getElementById('profilePreview');
-        fileInput.value = '';
-        output.src = '#';
-        output.style.display = 'none';
+        preview(event, 'profilePreview');
     }
 
     function previewEsign(event) {
-        const fileInput = event.target;
-        const output = document.getElementById('esignPreview');
-        if (fileInput.files && fileInput.files[0]) {
+        preview(event, 'esignPreview');
+    }
+
+    function preview(event, previewId) {
+        const output = document.getElementById(previewId);
+        const file = event.target.files[0];
+        if (file) {
             const reader = new FileReader();
             reader.onload = () => {
                 output.src = reader.result;
                 output.style.display = 'block';
             };
-            reader.readAsDataURL(fileInput.files[0]);
+            reader.readAsDataURL(file);
         } else {
             output.src = '#';
             output.style.display = 'none';
         }
     }
 
+    // Clear Functions
+    function clearPreview() {
+        clearInput('profile_picture', 'profilePreview');
+    }
+
     function clearEsignPreview() {
-        const fileInput = document.querySelector('input[name="e_signature"]');
-        const output = document.getElementById('esignPreview');
-        fileInput.value = '';
+        clearInput('e_signature', 'esignPreview');
+        transparentCheck.checked = false;
+        uploadBtn.style.display = 'none';
+    }
+
+    function clearInput(inputName, previewId) {
+        const input = document.querySelector(`input[name="${inputName}"]`);
+        const output = document.getElementById(previewId);
+        if (input) input.value = '';
         output.src = '#';
         output.style.display = 'none';
     }
+
+    // Show Upload button only if checkbox is checked
+    transparentCheck.addEventListener('change', function () {
+        uploadBtn.style.display = this.checked ? 'inline-block' : 'none';
+    });
+
+    // Initial button visibility (hidden until checked)
+    uploadBtn.style.display = 'none';
 </script>
+
 
 @endsection

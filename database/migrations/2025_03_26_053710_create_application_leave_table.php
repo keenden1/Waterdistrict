@@ -28,6 +28,8 @@ return new class extends Migration
 
             $table->string('b_details')->nullable();
             $table->string('b_details_specify')->nullable();
+            $table->string('b_other_purpose_detail')->nullable();
+            
             
             $table->string('c_working_days')->nullable();
             $table->string('c_inclusive_dates')->nullable();
@@ -39,6 +41,9 @@ return new class extends Migration
             $table->string('seven_d_disapproved')->nullable();
             $table->string('reason')->nullable();
             $table->string('status')->nullable();
+
+            $table->date('startDate')->nullable();
+            $table->date('endDate')->nullable();
             $table->timestamps();
         });
     }

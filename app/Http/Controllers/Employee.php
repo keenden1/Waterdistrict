@@ -422,6 +422,7 @@ public function application_leave_form(Request $request)
         'Others_details' => 'nullable|string|max:255',
         'detail' => 'nullable|string',
         'specify_details' => 'nullable|string|max:255',
+        'other_purpose_detail' => 'nullable|string|max:255',
         'startDate' => 'nullable|date',
         'endDate' => 'nullable|date',
     ]);
@@ -462,13 +463,15 @@ public function application_leave_form(Request $request)
 
         'b_details' => $validated['detail'] ?? null,
         'b_details_specify' => $validated['specify_details'] ?? null,
+        'b_other_purpose_detail' => $validated['other_purpose_detail'] ?? null,
         'status' => 'Pending',
         'd_commutation' => $validated['commutation'] ?? null,
-
+        
+        
         'c_working_days' => $days,
         'c_inclusive_dates' => $inclusiveDates,
-        'start_date' => $startDate,
-        'end_date' => $endDate,
+        'startDate' => $startDate,
+        'endDate' => $endDate,
     ]);
 
 
