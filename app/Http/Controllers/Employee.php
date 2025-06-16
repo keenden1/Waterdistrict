@@ -616,16 +616,16 @@ public function getSalary(Request $request)
                     ->first();
                     
                     $currentYear = Carbon::now()->year;
-                    $countVL = Application_leave::where('a_availed', 'Special Leave')
+                    $countVL = Application_leave::where('a_availed', 'Special Privilege Leave')
                       ->where('status', 'Approved')
                       ->whereYear('created_at', $currentYear)
                       ->count();
-                    $countSL = Application_leave::where('a_availed', 'Forced Leave')
+                    $countSL = Application_leave::where('a_availed', 'Mandatory/Forced Leave')
                       ->where('status', 'Approved')
                       ->whereYear('created_at', $currentYear)
                       ->count();
                    
-                    $SPL= 3 - $countSL;
+                    $SPL= 3 - $countVL;
                     $FL= 5 - $countSL;
                         return view('employee.profile',compact('employee','balance','SPL', 'FL'));
                     }

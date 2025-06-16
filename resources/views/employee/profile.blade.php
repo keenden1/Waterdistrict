@@ -24,15 +24,44 @@
                 <label>Employee ID</label>
                 <input type="text" value="{{$employee->employee_id}}" disabled>
 
-                 <label>Special Leave - CY</label>
-                <input type="text" value="{{$SPL.'/3' ?? '3/3'}}" disabled>
-             
-                <label>Forced Leave - CY</label>
-                <input type="text" value="{{$FL.'/5' ?? '5/5'}}" disabled>
-                
-                <label>Leave of Credit - YTD</label>
+                     <h2 style="margin-top: 20px;">Available Leave {{ date('Y') }}</h2>
 
-                <input type="text" value="{{$balance->total_leave_earned ?? '0'}}" disabled>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; margin-top: 10px; ">
+
+                <div style="flex: 1; min-width: 240px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; text-align: center;">Special Leave</label>
+                            <input type="text" value="{{ $SPL ?? '' }}" disabled>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; text-align: center;">Forced Leave</label>
+                            <input type="text" value="{{ $FL ?? '' }}" disabled>
+                        </div>
+                         <div style="flex: 1;">
+                            <label style="display: block; text-align: center;">Total</label>
+                            <input type="text" value="{{ ($FL ?? 0) + ($SPL ?? 0) }}" disabled>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; text-align: center;">VL</label>
+                            <input type="text" value="{{ $balance->sl_balance ?? '0' }}" disabled>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; text-align: center;">SL</label>
+                            <input type="text" value="{{ $balance->vl_balance ?? '0' }}" disabled>
+                        </div>
+                          <div style="flex: 1;">
+                            <label style="display: block; text-align: center;">&nbsp</label>
+                            <input type="text" value="{{ $balance->total_leave_earned ?? '0' }}" disabled>
+                        </div>
+                    </div>
+                </div>
+
+              
+            </div>
 
                  <label>E-Signature</label>
                 @if ($employee->e_signature)
