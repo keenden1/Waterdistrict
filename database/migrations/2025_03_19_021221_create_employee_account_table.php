@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('employee_account', function (Blueprint $table) {
             $table->id();
             $table->integer('employee_id')->nullable();
+            $table->integer('emp_id')->nullable();
             $table->string('email')->unique();
             $table->string('fname')->nullable();
             $table->string('mname')->nullable();

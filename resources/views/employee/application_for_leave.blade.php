@@ -126,7 +126,7 @@
           " >
         </div>
 
-        <div class="form-group" >
+        <div class="form-group" id="details_groupss">
           <label for="detail">Details of Leave</label>
           <select id="detail" name="detail">
             <option value="" disabled selected>Select Details of Leave</option>
@@ -174,6 +174,23 @@
             <option value="Monetization of Leave Credits">Monetization of Leave Credits</option>
             <option value="Terminal Leave">Terminal Leave</option>
           </select>
+        </div>
+
+       <div class="form-group" id="number_group">
+          <input type="number" id="number" name="number" class="underline-input" placeholder="0" min="0"
+          style="
+            display:none;
+           width: 100%;
+            border: none;
+            border-bottom: 1.5px solid rgba(128, 128, 128, 0.8);
+            padding: 8px 5px;
+            font-size: 16px;
+            border-radius: 0;
+            outline: none;
+            background: transparent;
+            color: #000;
+            margin-top:-50px;
+          " >
         </div>
 
         <div class="form-group-row" >
@@ -609,35 +626,57 @@ document.addEventListener("DOMContentLoaded", function () {
         otherPurposeGroup.style.display = "none";
         emergencyCode.style.display = "none";
 
+         Array.from(otherPurposeGroup.querySelectorAll("input, select, textarea")).forEach(el => {
+        el.value = "";
+    });
+
         // Show Others input if "Others:" selected
       // Show Other Purpose dropdown only when "Others:" is selected
       if (selectedType === "Others:") {
-          otherPurposeGroup.style.display = "block";
-
+          specify_details.style.display = "inline-block";
+          date_filing.style.display = "inline-block";
+          date_filing_1.style.display = "inline-block";
           // Listen to changes in 'other_purpose_detail'
+        
+      }
           const otherPurposeSelect = document.getElementById("other_purpose_detail");
-          const startDateInput = document.getElementById("startDate");
-          const endDateInput = document.getElementById("endDate");
+          const startDateInput = document.getElementById("date_filing");
+          const endDateInput = document.getElementById("date_filing_1");
+          const specify_detailsInput = document.getElementById("specify_details");
+          const detailInput = document.getElementById("details_groupss");
+          const numberInput = document.getElementById("number");
 
           otherPurposeSelect.addEventListener("change", function () {
               const selectedPurpose = otherPurposeSelect.value;
 
-              if (selectedPurpose === "Monetization of Leave Credits" || selectedPurpose === "Terminal Leave") {
+              if (selectedPurpose === "Monetization of Leave Credits" ) {
                   // Hide start and end date
                   dateFilingGroup.style.display = "none";
                   dateFilingGroup_2.style.display = "none";
                   startDateInput.style.display = "none";
                   endDateInput.style.display = "none";
+                  specify_detailsInput.style.display = "none";
+                  detailInput.style.display = "none";
+                  numberInput.style.display = "inline-block";
 
+                   Array.from(specify_detailsInput.querySelectorAll("input, select, textarea")).forEach(el => {
+                    el.value = "";});
+                   Array.from(detailInput.querySelectorAll("input, select, textarea")).forEach(el => {
+                  el.value = "";});
+                   Array.from(numberInput.querySelectorAll("input, select, textarea")).forEach(el => {
+                  el.value = "";});
+                  
               } else {
                   // Show start and end date
                   dateFilingGroup.style.display = "block";
                   dateFilingGroup_2.style.display = "block";
                   startDateInput.style.display = "block";
                   endDateInput.style.display = "block";
+                  specify_detailsInput.style.display = "inline-block";
+                  detailInput.style.display = "inline-block";
+                  numberInput.style.display = "none";
               }
           });
-      }
 
 
         // Show Preview button if selected type matches specific ones
@@ -653,6 +692,9 @@ document.addEventListener("DOMContentLoaded", function () {
         dateFilingGroup.style.display = "block";
         dateFilingGroup_2.style.display = "block";
     }
+  
+
+
 }
 
         // Show Details group if needed
@@ -672,8 +714,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Show "Other Purpose"
-        if (["Vacation Leave", "Sick Leave", "Others:"].includes(selectedType)) {
+        if (["Vacation Leave", "Sick Leave"].includes(selectedType)) {
             otherPurposeGroup.style.display = "block";
+            dateFilingGroup.style.display = "block";
+            dateFilingGroup_2.style.display = "block";
+            submitButton.style.display = "inline-block";
         }
 
         // Show emergency code block
@@ -686,6 +731,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ) {
             emergencyCode.style.display = "flex";
         }
+
 
         // Reset all detail options
         optGroups.forEach(group => {
@@ -740,6 +786,21 @@ document.addEventListener("DOMContentLoaded", function () {
         dateFilingGroup.style.display = show ? "block" : "none";
         dateFilingGroup_2.style.display = show ? "block" : "none";
         submitButton.style.display = show ? "inline-block" : submitButton.style.display;
+    
+        const groupA  =  document.getElementById("other_purpose_group");
+       
+         if (
+            selectedValue === "In Hospital(Specify Illness)" ||
+            selectedValue === "Out Patient(Specify Illness)" ||
+            selectedValue === "Within Philippines" ||
+            selectedValue === "Abroad"
+        ) {
+            groupA.style.display = "none";
+        }
+
+      
+
+
     });
 });
 </script>
@@ -898,7 +959,7 @@ function previewForm() {
     const specify_details = document.getElementById('specify_details').value || '------';
     const commutation = document.getElementById('commutation').value || '------';
     const other_purpose_detail = document.getElementById('other_purpose_detail').value || '------';
-
+    const number_const = document.getElementById('number').value || '------';
     // Format dates
     const rawStartDate = document.getElementById('startDate').value;
     const rawEndDate = document.getElementById('endDate').value;
@@ -963,6 +1024,7 @@ function previewForm() {
     document.getElementById('workingDays').innerText = workingDays;
     document.getElementById('previewcommutation').innerText = commutation;
     document.getElementById('previewother_purpose_detail').innerText = other_purpose_detail;
+    
 
     // Define special leave types that should show the submit button regardless
   const forcedTypes = [
@@ -983,10 +1045,12 @@ function previewForm() {
   const isBasicValid = department !== '------' && salary !== '------' && rawStartDate !== '' && rawEndDate !== '';
   const isFullyValid = isBasicValid && detail !== '------';
   const isOthersValid = typeTrimmed === "Others:" && other_purpose_detail !== '------' && department !== '------' && salary !== '------';
+  
+  const isnumber = number_const !== '------';
+  const monitize = typeTrimmed === "Vacation Leave" || typeTrimmed === "Sick Leave" && isnumber;
+  const submitButton = document.getElementById('show-only');
 
-    const submitButton = document.getElementById('show-only');
-
-    if (isFullyValid || isOthersValid || (forcedTypes.includes(typeTrimmed) && isBasicValid)) {
+    if (isFullyValid || isOthersValid || monitize || (forcedTypes.includes(typeTrimmed) && isBasicValid)) {
         submitButton.style.display = 'inline-block';
     } else {
         submitButton.style.display = 'none';

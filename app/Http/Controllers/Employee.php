@@ -332,6 +332,7 @@ public function registerUser(Request $request)
 
         // Save employee details to the database
         $data['employee_id'] = $request->employee_id;
+        $data['emp_id'] = $request->employee_id;
         $data['email'] = $request->email;
         $data['fname'] = $request->fname;
         $data['mname'] = $request->mname;
@@ -431,6 +432,7 @@ public function application_leave_form(Request $request)
         'other_purpose_detail' => 'nullable|string|max:255',
         'startDate' => 'nullable|date',
         'endDate' => 'nullable|date',
+        'number'=>  'nullable|integer',
     ]);
 
     $startDate = $validated['startDate'] ?? null;
@@ -448,7 +450,7 @@ public function application_leave_form(Request $request)
             return !$date->isWeekend(); // Only weekdays
         })->count();
 
-        $inclusiveDates = $startDate . '/' . $endDate;
+        $inclusiveDates = $startDate . ' - ' . $endDate;
     }
 
     $employee = Employee_Account::where('email', $validated['email'])->first();
@@ -475,7 +477,7 @@ public function application_leave_form(Request $request)
         
         
         'c_working_days' => $days,
-        'c_inclusive_dates' => $inclusiveDates,
+        'c_inclusive_dates' => $inclusiveDates ?? $validated['number'] ?? null,
         'startDate' => $startDate,
         'endDate' => $endDate,
     ]);

@@ -92,6 +92,9 @@
 
 
     <div class="myPopover" id="myPopover-{{ $employee->id }}" popover style="border: 1px solid #333;">
+         <a href="{{ url('/employee/edit') }}?id={{ $employee->id }}&employee_id={{ $employee->employee_id }}&position={{ urlencode($employee->position) }}&monthly_salary={{ $employee->monthly_salary }}" class="btn3">
+            <i class='bx bx-edit'></i>
+        </a>
           <h3>Details</h3><br>
           <div class="popover-content">
             <div class="row"><span class="label">Employee ID:</span></div>
@@ -100,7 +103,12 @@
             <div class="row"> <span style="padding-left: 2em;">{{ $employee->email }}</span></div>
             <div class="row"><span class="label">Name:</span></div>
             <div class="row"> <span style="padding-left: 2em;">{{ ucfirst(strtolower($employee->fname)) }} {{ $employee->mname ? ucfirst(strtolower($employee->mname)) . '.' : '' }} {{ ucfirst(strtolower($employee->lname)) }} </span></div>
-            
+            <div class="row"><span class="label">Position:</span></div>
+            <div class="row"> <span style="padding-left: 2em;">{{ $employee->position }}</span></div>
+             <div class="row"><span class="label">Monthly Salary:</span></div>
+            <div class="row"> <span style="padding-left: 2em;">₱{{ $employee->monthly_salary }}</span></div>
+            <div class="row"><span class="label">Account Status:</span></div>
+            <div class="row"> <span style="padding-left: 2em;">{{ $employee->account_status }}</span></div>
           </div>
 
           @if ($employee->account_status == 'Pending')
@@ -398,6 +406,26 @@
       border: none;
       padding: 0;
       cursor: pointer;
+    }
+    .btn2:hover {
+      transform: scale(1.1); /* Slight zoom effect */
+    }
+    .btn3 {
+      position: absolute;
+      top: 23px;
+      right: 55px;
+      background: none;
+      border: none;
+      padding: 0;
+      color:black;
+      cursor: pointer;
+    }
+    .btn3:hover {
+      color: #007bff; /* Change to your preferred hover color */
+      transform: scale(1.1); /* Slight zoom effect */
+    }
+    .btn3 i{
+      font-size: 32px;
     }
    .scroll::-webkit-scrollbar {
     width: 5px;

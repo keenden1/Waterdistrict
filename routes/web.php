@@ -109,7 +109,8 @@ Route::get('/samples', [Admin::class, 'samples'])->name('samples');
 Route::post('/leaves/store', [Admin::class, 'leave_store'])->name('leaves.store');
 Route::post('/leaves/store/multiple', [Admin::class, 'leave_store_multiple'])->name('leaves.store.multiple');
 Route::post('/update-caption', [Admin::class, 'updateCaption']);
-
+Route::get('/employee/edit', [Admin::class, 'edit'])->name('employee.edit');
+Route::put('/employee/{id}', [Admin::class, 'employee_update'])->name('employee.update');
 
 Route::get('/form', function () {
     return view('form/layout');

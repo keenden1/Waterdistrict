@@ -1149,7 +1149,7 @@ public function changePassword(Request $request)
         if (!$email) {
             return redirect('/Admin')->with('error', 'You need to log in first.');
         }
-        $leave = Application_leave::orderBy('date_filing', 'desc')->get();
+        $leave = Application_leave::orderBy('created_at', 'desc')->get();
         return view('adminpage.applicationleave', compact('leave'));
     }
   function Admin_Employee_Account() {
@@ -1916,4 +1916,41 @@ function Rate(){
             return redirect()->back()->with('error', 'An error occurred. Please try again later.');
         }
     }
+
+  public function edit(Request $request)
+    {
+        $id = $request->id; // capture employee DB ID
+        $employeeId = $request->employee_id;
+        $position = $request->position;
+        $monthlySalary = $request->monthly_salary;
+
+        return view('adminpage.edit', compact('id', 'employeeId', 'position', 'monthlySalary'));
+    }
+
+public function employee_update(Request $request)
+{
+    $dd =$request->validate([
+        'id' => 'required|integer',
+        'employee_id' => 'required',
+        'position' => 'required',
+        'monthly_salary' => 'required|numeric',
+    ]);
+  
+
+    $employee = Employee_Account::find($request->id);
+
+
+    if ($employee) {
+        $employee->emp_id = $request->employee_id;
+        $employee->position = $request->position;
+        $employee->monthly_salary = $request->monthly_salary;
+        $employee->save();
+
+        return redirect('/Admin-Employee-Account')->with('success', 'Employee updated successfully.');
+    }
+
+    return redirect()->back()->with('error', 'Employee not found.');
+}
+
+
 }
