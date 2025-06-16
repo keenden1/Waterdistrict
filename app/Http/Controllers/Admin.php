@@ -711,27 +711,52 @@ public function exportUsers($id)
    
     // Set cell values (adjust cell references to match your template)
     $sheet->setCellValue('B5', $application->officer_department);
+    $sheet->getStyle('B5')->getFont()->setBold(true);
     $sheet->setCellValue('E5', $fullname);
-
+    $sheet->getStyle('E5')->getFont()->setBold(true);
       
 
     $position = $application->position;
     $salary = 'SG' . $application->salary_grade . '-' . $application->step_grade;
-
     $formattedPosition = $this->embedInUnderscores($position);
     $formattedSalary = $this->embedInUnderscores($salary);
 
-    // Combine into one string as a form line
-    $line = "4.   POSITION  $formattedPosition     5.  SALARY  $formattedSalary";
+    // Create a RichText object
+    $richText = new RichText();
 
-    $sheet->setCellValue('E6', $line);
+    // Add static part before position
+    $richText->createText("4.   POSITION  ");
+
+    // Add bolded position
+    $boldPosition = $richText->createTextRun($formattedPosition);
+    $boldPosition->getFont()->setBold(true);
+
+    // Add text between position and salary
+    $richText->createText("     5.  SALARY  ");
+
+    // Add bolded salary
+    $boldSalary = $richText->createTextRun($formattedSalary);
+    $boldSalary->getFont()->setBold(true);
+
+    // Set to cell
+    $sheet->setCellValue('E6', $richText);
     
     $date_filing = $application->date_filing;
     $formatteddate_filing = $this->embedInUnderscores($date_filing);
-    $line1 = "3.   DATE OF FILING  $formatteddate_filing";
 
-    $sheet->setCellValue('A6', $line1);
-   
+    // Create RichText for cell A6
+    $richTextFiling = new RichText();
+
+    // Add static part
+    $richTextFiling->createText("3.   DATE OF FILING  ");
+
+    // Add bolded date
+    $boldDate = $richTextFiling->createTextRun($formatteddate_filing);
+    $boldDate->getFont()->setBold(true);
+
+    // Set to cell A6
+    $sheet->setCellValue('A6', $richTextFiling);
+    
 
     // Checkboxes (✔ for selected leave type)
     $leaveCells = [
@@ -793,7 +818,7 @@ foreach ($leaveCell1 as $type => $cells) {
 
     // Save to Excel
     $sheet->setCellValue('C45', $days . ' day/s');
-
+    $sheet->getStyle('C45')->getFont()->setBold(true);
    if ($application->a_availed === 'Vacation Leave' || $application->a_availed === 'Mandatory/Forced Leave') {
             $less_vl_used = $days;
             $less_vsl_used = '-';
@@ -810,7 +835,19 @@ foreach ($leaveCell1 as $type => $cells) {
     $sheet->setCellValue('E57', $less_vsl_used );
 
 
-    $sheet->setCellValue('C48', $application->c_inclusive_dates);
+    $startDate_number = $application->startDate;
+    $endDate_number = $application->endDate;
+
+    if ($endDate_number === $endDate_number) {
+        // If the dates are the same, format only once
+        $formatted = date('M d, Y', strtotime($startDate_number));
+    } else {
+        // If different, show both
+        $formatted = date('M d, Y', strtotime($startDate_number)) . ' - ' . date('M d, Y', strtotime($endDate_number));
+    }
+
+    $sheet->setCellValue('C48', $formatted);
+
 
     $datelastmonth = \Carbon\Carbon::now()->subMonth()->endOfMonth()->format('d F, Y');
     $sheet->setCellValue('C53', 'As of '. $datelastmonth);
@@ -818,12 +855,14 @@ foreach ($leaveCell1 as $type => $cells) {
     // Others
     if ($application->a_availed == 'Others:') {
         $sheet->setCellValue('B41', $application->a_availed_others); 
+         $sheet->getStyle('B41')->getFont()->setBold(true);
     }
 
     $sheet->setCellValue('H39', $application->b_other_purpose_detail == 'Monetization of Leave Credits' ? '✔' : '');
     $sheet->setCellValue('H41', $application->b_other_purpose_detail == 'Terminal Leave' ? '✔' : '');
     if($application->a_availed == 'Others:'){
       $sheet->setCellValue('B41', $application->b_other_purpose_detail );
+       $sheet->getStyle('B41')->getFont()->setBold(true);
     }
 
     $sheet->setCellValue('H33', $application->b_details == 'Completion of Masters Degree' ? '✔' : '');
@@ -891,8 +930,6 @@ if ($account->e_signature && file_exists(public_path($account->e_signature))) {
     // Attach image to the worksheet
     $drawing->setWorksheet($sheet);
 }
-
-
 
     // Save and download
     $excelname = 'Save_' . now()->format('Ymd_His') . '.xlsx';
