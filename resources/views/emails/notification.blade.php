@@ -24,33 +24,34 @@
                     <!-- Body -->
                     <tr>
                         <td class="body" style="padding: 40px; text-align: left; font-size: 16px; line-height: 1.6;">
-                        Hello Sir Marben,
-                        <br><br>
-                        EMPLOYEE {{$displayName}} HAS SUBMITTED A LEAVE REQUEST. PLEASE REVIEW THE DETAILS BELOW:
-                        <br><br>
-                        EMPLOYEE NAME: JHONNY SINS
-                        LEAVE TYPE:[SICK LEAVE/ VACATION LEAVE/ PERSONAL LEAVE]
-                        START DATE: [05/01/2025]
-                        END DATE: [05/07/2025]
-                        <br><br>
-                        PLEASE REVIEW THE REQUEST AND TAKE NECESSARY ACTION.
-
-                    </td>
+                            Greetings,
+                            <br><br>
+                            AN EMPLOYEE HAS SUBMITTED A LEAVE REQUEST. PLEASE REVIEW THE DETAILS BELOW:
+                            <br><br>
+                            EMPLOYEE NAME: {{ $displayName }}<br>
+                            LEAVE TYPE: {{ $type }}<br>
+                            START DATE: {{ \Carbon\Carbon::parse($startDate)->format('M d, Y') }}<br>
+                            END DATE: {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}<br>
+                            <br><br>
+                            PLEASE REVIEW THE REQUEST AND TAKE NECESSARY ACTION.
+                        </td>
                     </tr>
 
                     <!-- Call to action Button -->
-                    <tr>
+                    <!-- <tr>
                         <td style="padding: 0px 40px 0px 40px; text-align: center;">
-                            <!-- CTA Button -->
+                           
                             <table cellspacing="0" cellpadding="0" style="margin: auto;">
                                 <tr>
                                     <td align="center" style="background-color: #345C72; padding: 10px 20px; border-radius: 5px;">
-                                        <a href="https://www.yourwebsite.com" target="_blank" style="color: #ffffff; text-decoration: none; font-weight: bold;">GO TO DASHBOARD</a>
+                                        <a href="" target="_blank" style="color: #ffffff; text-decoration: none; font-weight: bold;">GO TO DASHBOARD</a>
                                     </td>
                                 </tr>
                             </table>
                         </td>
-                    </tr>
+                    </tr> 
+                    <br>-->
+                    
                     <!-- Footer -->
                     <tr>
                     <td class="footer" style="background-color: #333333; padding: 40px; text-align: center; color: white; font-size: 14px;">

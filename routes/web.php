@@ -94,7 +94,6 @@ Route::put('/Admin-Rate-Update/{id}', [Admin::class, 'Rate_update'])->name('Admi
 
 
 Route::post('/update-status-approve/{id}', [Admin::class, 'updateStatusapprove']);
-
 Route::post('/update-status-decline/{id}', [Admin::class, 'updateStatusdecline']);
 
 Route::post('/update-status-activate/{id}', [Admin::class, 'updateStatusactivate']);

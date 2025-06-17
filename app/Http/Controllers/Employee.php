@@ -17,6 +17,7 @@ use Kreait\Firebase\Auth\SignIn\FailedToSignIn;
 use Kreait\Firebase\Exception\InvalidArgumentException;
 use Illuminate\Support\Facades\Mail;
 use Kreait\Firebase\Factory;
+use App\Mail\Notification_Message;
 use Kreait\Firebase\Exception\AuthException;
 use Kreait\Firebase\Exception\Auth\UserNotFound;
 use Carbon\Carbon;
@@ -481,8 +482,16 @@ public function application_leave_form(Request $request)
         'startDate' => $startDate,
         'endDate' => $endDate,
     ]);
+    $email = Employee_Account::where('role', 'admin')->value('email');
 
-
+   Mail::to($email)->send( 
+    new Notification_Message(
+        $validated['fullname'],
+        $validated['type'],
+        $startDate,
+        $endDate
+            )
+        );
     return redirect()->back()->with('success', 'Leave Application Submitted Successfully');
 }
 

@@ -239,11 +239,13 @@ public function leave_store(Request $request)
     $data['constant_factor'] = 0.0481927;
     $data['total_benifits'] = $total_benifits;
 
+    
 
     Leave::create($data);
 
     return redirect()->back()->with('success', 'Leave record added successfully.');
 }
+
 public function leave_store_multiple(Request $request)
 {
     $count = count($request->employee_id);
@@ -265,6 +267,16 @@ public function leave_store_multiple(Request $request)
 
             'vl_earned' => $request->vl_earned[$i] ?? 0,
             'sl_earned' => $request->sl_earned[$i] ?? 0,
+            
+            'day_A_T' => $request->day_A_T[$i] ?? 0,
+            'hour_A_T' => $request->hour_A_T[$i] ?? 0,
+            'minutes_A_T' => $request->minutes_A_T[$i] ?? 0,
+            'times_A_T' => $request->times_A_T[$i] ?? 0,
+
+            'day_Under' => $request->day_Under[$i] ?? 0,
+            'hour_Under' => $request->hour_Under[$i] ?? 0,
+            'minutes_Under' => $request->minutes_Under[$i] ?? 0,
+            'times_Under' => $request->times_Under[$i] ?? 0,
         ];
 
         $result = $this->processSingleLeaveEntry(new Request($entry));
@@ -944,39 +956,70 @@ if ($account->e_signature && file_exists(public_path($account->e_signature))) {
     
 
     public function updateStatusapprove(Request $request, $id)
-        {
-            $application = Application_leave::findOrFail($id);
-            $application->status = $request->status;
-            $application->save();
+{
+    $application = Application_leave::findOrFail($id);
+    $application->status = $request->status;
+    $application->save();
 
-            return response()->json(['success' => true]);
-        }
-        public function updateStatusactivate(Request $request, $id)
-        {
-            $application = Employee_Account::findOrFail($id);
-            $application->account_status = $request->status;
-            $application->save();
+    // Send email
+    Mail::to($application->email)->send(new \App\Mail\StatusNotificationMail(
+        $application->fullname,
+        'approved',
+        null // no reason
+    ));
 
-            return response()->json(['success' => true]);
-        }
-    public function updateStatusdecline(Request $request, $id)
-        {
-            $application = Application_leave::findOrFail($id);
-            $application->status = $request->status;
-            $application->reason = $request->reason;
-            $application->save();
-        
-            return response()->json(['success' => true]);
-        }
-        public function updateStatusdisable(Request $request, $id)
-        {
-            $application = Employee_Account::findOrFail($id);
-            $application->account_status = $request->status;
-            $application->save();
+    return response()->json(['success' => true]);
+}
 
-            return response()->json(['success' => true]);
-        }
-        
+      public function updateStatusdecline(Request $request, $id)
+{
+    $application = Application_leave::findOrFail($id);
+    $application->status = $request->status;
+    $application->reason = $request->reason;
+    $application->save();
+
+    // Send email
+    Mail::to($application->email)->send(new \App\Mail\StatusNotificationMail(
+        $application->fullname,
+        'declined',
+        $application->reason
+    ));
+
+    return response()->json(['success' => true]);
+}
+
+  public function updateStatusactivate(Request $request, $id)
+{
+    $employee = Employee_Account::findOrFail($id);
+    $employee->account_status = $request->status;
+    $employee->save();
+
+    // Send email
+    Mail::to($employee->email)->send(new \App\Mail\StatusNotificationMail(
+        $employee->fullname,
+        'account_activated',
+        null
+    ));
+
+    return response()->json(['success' => true]);
+}
+
+    public function updateStatusdisable(Request $request, $id)
+{
+    $employee = Employee_Account::findOrFail($id);
+    $employee->account_status = $request->status;
+    $employee->save();
+
+    // Send email
+    Mail::to($employee->email)->send(new \App\Mail\StatusNotificationMail(
+        $employee->fullname,
+        'account_disabled',
+        null
+    ));
+
+    return response()->json(['success' => true]);
+}
+
 
         function Admin(){
            $count = Employee_Account::where('role', 'admin')->count();

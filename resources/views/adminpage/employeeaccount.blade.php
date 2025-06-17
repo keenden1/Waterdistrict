@@ -46,7 +46,7 @@
     border-radius: 50%;
     object-fit: cover;"></td>
 
-      <td style="text-align: center;"> {{ $employee->employee_id }} </td>
+      <td style="text-align: center;"> {{ $employee->emp_id }} </td>
        <td style="text-align: center;">
       <a class="btn5" href="{{ route('Admin-Input-page', $employee->employee_id) }}">View</a>
       </td>
@@ -92,13 +92,13 @@
 
 
     <div class="myPopover" id="myPopover-{{ $employee->id }}" popover style="border: 1px solid #333;">
-         <a href="{{ url('/employee/edit') }}?id={{ $employee->id }}&employee_id={{ $employee->employee_id }}&position={{ urlencode($employee->position) }}&monthly_salary={{ $employee->monthly_salary }}" class="btn3">
+         <a href="{{ url('/employee/edit') }}?id={{ $employee->id }}&employee_id={{ $employee->emp_id }}&position={{ urlencode($employee->position) }}&monthly_salary={{ $employee->monthly_salary }}" class="btn3">
             <i class='bx bx-edit'></i>
         </a>
           <h3>Details</h3><br>
           <div class="popover-content">
             <div class="row"><span class="label">Employee ID:</span></div>
-            <div class="row"> <span style="padding-left: 2em;">{{ $employee->employee_id }}</span></div>
+            <div class="row"> <span style="padding-left: 2em;">{{ $employee->emp_id }}</span></div>
             <div class="row"><span class="label">Email Address:</span></div>
             <div class="row"> <span style="padding-left: 2em;">{{ $employee->email }}</span></div>
             <div class="row"><span class="label">Name:</span></div>

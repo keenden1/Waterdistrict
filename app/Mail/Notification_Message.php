@@ -5,11 +5,17 @@ use Illuminate\Mail\Mailable;
 
 class Notification_Message extends Mailable
 {
-    public $verificationLink, $displayName;
+    public $displayName;
+    public $type;
+    public $startDate;
+    public $endDate;
 
-    public function __construct( $displayName)
+    public function __construct($displayName, $type, $startDate, $endDate)
     {
         $this->displayName = $displayName;
+        $this->type = $type;
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
     }
 
     public function build()
@@ -18,6 +24,9 @@ class Notification_Message extends Mailable
                     ->view('emails.notification')
                     ->with([
                         'displayName' => $this->displayName,
+                        'type' => $this->type,
+                        'startDate' => $this->startDate,
+                        'endDate' => $this->endDate,
                     ]);
     }
 }

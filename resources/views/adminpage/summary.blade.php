@@ -23,9 +23,9 @@
         <td colspan="5">Total</td>
     </tr>
     <tr>
-       <td>last Name</td>
-       <td>First Name</td>
        <td>Last Name</td>
+       <td>First Name</td>
+       <td>Middle Name</td>
        <td>Day</td>
        <td>Hour</td>
        <td>Minutes</td>

@@ -22,7 +22,7 @@
                 <input type="text" value="{{$employee->position}}" disabled>
                 
                 <label>Employee ID</label>
-                <input type="text" value="{{$employee->employee_id}}" disabled>
+                <input type="text" value="{{$employee->emp_id}}" disabled>
 
                      <h2 style="margin-top: 20px;">Available Leave {{ date('Y') }}</h2>
 
